@@ -15,11 +15,11 @@ class KNNClassifier(object):
 
     def predict(self, k, X):
         """
-        Input: numpy array of X
+        Input: numpy array of X test
         Output: numpy array of y_hat
         """
         self.k = k
-        return self._dist(X)
+        return np.apply_along_axis(self._row_dist, 1, X)
 
     def score(self, y):
         """
@@ -28,10 +28,11 @@ class KNNClassifier(object):
         """
         pass
 
-    def _dist(self, X):
-        return np.apply_along_axis(self._row_dist, 1, X)
-
     def _row_dist(self, row):
+        """
+        Input: numpy array row of X_test
+        Output: integer y_hat for row
+        """
         k_dist = []
         for i, r in enumerate(self.X_train):
             d = np.linalg.norm(row - r)
@@ -44,4 +45,8 @@ class KNNClassifier(object):
         return self._assign(k_dist)
 
     def _assign(self, k_dist):
-        return np.mean([n[1] for n in k_dist])
+        """
+        Input: list containing tuples with distances and y train
+        Output: int assignment for X_test row
+        """
+        return int(round(np.mean([n[1] for n in k_dist])))
