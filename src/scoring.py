@@ -20,7 +20,7 @@ def TSS(y):
 def ESS(y, y_hat):
     """
     Input: numpy arrays of y and y_hat
-    Output: total sum of squares
+    Output: explained sum of squares
     """
     return np.sum((y_hat - np.mean(y)) ** 2)
 
