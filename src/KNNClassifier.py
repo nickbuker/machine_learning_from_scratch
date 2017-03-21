@@ -13,9 +13,9 @@ class KNNClassifier(object):
         """
         self.X_train, self.y_train = X, y
 
-    def predict(self, k, X):
+    def predict(self, k, X, weights='distance'):
         """
-        Input: numpy array of X test
+        Input: int k, numpy array of X test, weights for assignment
         Output: numpy array of y_hat
         """
         self.k = k
@@ -28,9 +28,9 @@ class KNNClassifier(object):
         """
         pass
 
-    def _row_dist(self, row):
+    def _row_dist(self, row, weights):
         """
-        Input: numpy array row of X_test
+        Input: numpy array row of X_test, weights
         Output: integer y_hat for row
         """
         k_dist = []
@@ -42,11 +42,15 @@ class KNNClassifier(object):
             elif d < k_dist[-1][0]:
                 k_dist[-1] = (d, self.y_train[i])
                 k_dist.sort()
-        return self._assign(k_dist)
+        return self._assign(k_dist, weights)
 
-    def _assign(self, k_dist):
+    def _assign(self, k_dist, weights):
         """
-        Input: list containing tuples with distances and y train
+        Input: list containing tuples (distances, y train) and weights
         Output: int assignment for X_test row
         """
-        return int(round(np.mean([n[1] for n in k_dist])))
+        tot_d = sum([n[0] for n in k_dist])
+        if weights == 'uniform' or tot_d == 0:
+            return int(round(np.mean([n[1] for n in k_dist])))
+        if weights == 'distance':
+            return int(round(np.mean([1 - (n[0] / tot_d) * n[1] for n in k_dist])))
