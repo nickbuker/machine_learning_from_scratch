@@ -18,8 +18,11 @@ class KNNClassifier(object):
         Input: int k, numpy array of X test, weights for assignment
         Output: numpy array of y_hat
         """
-        self.k = k
-        return np.apply_along_axis(self._row_dist, 1, X)
+        try:
+            self.k = k
+            return np.apply_along_axis(self._row_dist, 1, X)
+        except AttributeError:
+            print 'Please fit the model before making predictions.'
 
     def score(self, y):
         """
