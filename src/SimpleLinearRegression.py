@@ -2,7 +2,7 @@ import numpy as np
 from scoring import R2
 
 
-class SimpleLinearRegression(object):
+class SimpleLinearRegression:
 
     def __init__(self):
         pass
@@ -16,7 +16,7 @@ class SimpleLinearRegression(object):
         self.x_bar, self.y_bar = np.mean(x), np.mean(y)
         self.b1 = self._find_b1()
         self.b0 = self._find_b0()
-        print 'y_hat = {} + {} * x'.format(self.b1, self.b0)
+        print('y_hat = {} + {} * x'.format(self.b1, self.b0))
 
     def predict(self, x):
         """
@@ -26,8 +26,8 @@ class SimpleLinearRegression(object):
         try:
             self.y_hat = (self.b1 * x) + self.b0
             return self.y_hat
-        except AttributeError:
-            print 'Please fit the model before making predictions.'
+        except:
+            raise AttributeError('Please fit the model before making predictions.')
 
     def score(self, y):
         """
@@ -37,8 +37,8 @@ class SimpleLinearRegression(object):
         try:
             self.R2 = R2(y, self.y_hat)
             return self.R2
-        except AttributeError:
-            print 'Please make a prediction before scoring.'
+        except:
+            raise AttributeError('Please fit the model before making predictions.')
 
     def _find_b1(self):
         """

@@ -1,7 +1,7 @@
 import numpy as np
 
 
-class KNNClassifier(object):
+class KNNClassifier:
 
     def __init__(self):
         pass
@@ -21,8 +21,8 @@ class KNNClassifier(object):
         try:
             self.k = k
             return np.apply_along_axis(self._row_dist, 1, X)
-        except AttributeError:
-            print 'Please fit the model before making predictions.'
+        except:
+            raise AttributeError('Please fit the model before making predictions.')
 
     def score(self, y):
         """

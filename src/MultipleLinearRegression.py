@@ -2,7 +2,7 @@ import numpy as np
 from scoring import R2
 
 
-class MultipleLinearRegression(object):
+class MultipleLinearRegression:
 
     def __init__(self):
         pass
@@ -16,7 +16,7 @@ class MultipleLinearRegression(object):
         self.y = y
         self.betas = self._find_betas()
         for i, beta in enumerate(self.betas):
-            print 'B{}: {}'.format(i, beta),
+            print('B{}: {}'.format(i, beta), end=" ")
 
     def predict(self, x):
         """
@@ -26,8 +26,8 @@ class MultipleLinearRegression(object):
         try:
             self.y_hat = x.dot(self.betas)
             return self.y_hat
-        except AttributeError:
-            print 'Please fit the model before making predictions.'
+        except:
+            raise AttributeError('Please fit the model before making predictions.')
 
     def score(self, y):
         """
@@ -37,8 +37,8 @@ class MultipleLinearRegression(object):
         try:
             self.R2 = R2(y, self.y_hat)
             return self.R2
-        except AttributeError:
-            print 'Please make a prediction before scoring.'
+        except:
+            raise AttributeError('Please make a prediction before scoring.')
 
     def _find_betas(self):
         """
