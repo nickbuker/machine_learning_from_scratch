@@ -37,15 +37,20 @@ class KNNClassifier:
         Output: integer y_hat for row
         """
         k_dist = []
-        for i, r in enumerate(self.X_train):
-            d = np.linalg.norm(row - r)
-            if len(k_dist) < self.k:
-                k_dist.append((d, self.y_train[i]))
-                k_dist.sort()
-            elif d < k_dist[-1][0]:
-                k_dist[-1] = (d, self.y_train[i])
-                k_dist.sort()
-        return self._assign(k_dist, weights)
+        if weights == 'normal':
+            pass
+        elif weights == 'uniform' or weights == 'distance':
+            for i, r in enumerate(self.X_train):
+                d = np.linalg.norm(row - r)
+                if len(k_dist) < self.k:
+                    k_dist.append((d, self.y_train[i]))
+                    k_dist.sort()
+                elif d < k_dist[-1][0]:
+                    k_dist[-1] = (d, self.y_train[i])
+                    k_dist.sort()
+            return self._assign(k_dist, weights)
+        else:
+            raise ValueError('Weight types: uniform, distance, or normal')
 
     def _assign(self, k_dist, weights):
         """
@@ -57,3 +62,5 @@ class KNNClassifier:
             return int(round(np.mean([n[1] for n in k_dist])))
         if weights == 'distance':
             return int(round(np.mean([1 - (n[0] / tot_d) * n[1] for n in k_dist])))
+        if weights == 'normal':
+            pass
