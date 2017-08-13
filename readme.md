@@ -1,6 +1,6 @@
 # Machine Learning From Scratch
 
-##### Simple machine learning algorithms implemented from scratch in Python for the purposes of fun and education (use at your own risk). Under construction: More methods to come.
+##### Simple machine learning algorithms implemented from scratch in Python for the purposes of fun and education. Under construction: More methods to come.
 
 ```Python
 import numpy as np
