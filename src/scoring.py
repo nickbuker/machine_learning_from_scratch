@@ -1,4 +1,3 @@
-from __future__ import division
 import numpy as np
 
 
@@ -54,6 +53,20 @@ def R2(y, y_hat):
         R squared
     """
     return 1 - (RSS(y, y_hat) / TSS(y))
+
+
+def accuracy(y, y_pred):
+    """ Accuracy of classification model
+
+    :param y: numpy array
+        class labels
+    :param y_pred: numpy array
+        classes predicted by model
+
+    :return: float
+        accuracy
+    """
+    return sum(y == y_pred) / len(y)
 
 
 def log_loss(y, y_prob):
