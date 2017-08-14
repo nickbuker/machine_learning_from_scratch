@@ -8,28 +8,36 @@ class KNNClassifier:
         pass
 
     def fit(self, X, y):
-        """ Take in training data
+        """ Takes in training data
 
-        :param X: numpy array
+        Parameters
+        ----------
+        X : numpy array
             training data
-        :param y: numpy array
-            0 or 1 class labels
+        y :numpy array
+            actual 0 or 1 class labels for training data
 
-        :return: None
+        Returns
+        -------
+        None
         """
         self.X_train, self.y_train = X, y
 
     def predict(self, k, X, weights='distance'):
         """ Make class predictions
 
-        :param k: int
-            number of nearby points to consider in classifcation
-        :param X: numpy array
+        Parameters
+        ----------
+        k : int
+            number of nearby points to consider in classification
+        X : numpy array
             test data
-        :param weights: string
+        weights : basestring
             uniform considers k points evenly and distance weighs nearby points more heavily
 
-        :return: numpy array
+        Returns
+        -------
+        numpy array
             class predictions made by model
         """
         try:
@@ -42,10 +50,14 @@ class KNNClassifier:
     def score(self, y):
         """ Calculates the accuracy of the model
 
-        :param y: numpy array
+        Parameters
+        ----------
+        y : numpy array
             actual labels for data
 
-        :return: float
+        Returns
+        -------
+        float
             accuracy of model
         """
         try:
@@ -57,12 +69,16 @@ class KNNClassifier:
     def _row_dist(self, row, weights):
         """ Calculate distances to each point in the training data
 
-        :param row: int
+        Parameters
+        ----------
+        row : int
             row number in X_test
-        :param weights: string
+        weights : basestring
             uniform considers k points evenly and distance weighs nearby points more heavily
 
-        :return:  int
+        Returns
+        -------
+        int
             class assignment for test data row
         """
         k_dist = []
@@ -82,12 +98,16 @@ class KNNClassifier:
     def _assign(self, k_dist, weights):
         """ Assigns label to point
 
-        :param k_dist: list of tuples
+        Parameters
+        ----------
+        k_dist : list of tuples
             contains distance and label for training data
-        :param weights:  string
+        weights : basestring
             uniform considers k points evenly and distance weighs nearby points more heavily
 
-        :return: int
+        Returns
+        -------
+        int
             class assignment for test data row
         """
         tot_d = sum([n[0] for n in k_dist])
