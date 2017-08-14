@@ -13,15 +13,20 @@ class LogisticRegression:
 
         Parameters
         ----------
-        X
-        y
-        intercept
-        learning_rate
+        X : numpy array
+            training data
+        y : numpy array
+            actual 0 and 1 class labels for training data
+        intercept : bool
+            if True include intercept
+            if False do not include intercept
+        learning_rate : float
+            learning rate for gradient descent
         converge_change : float
-            threshold for reaching convergence
+            threshold for reaching convergence during gradient descent
         max_iter : int
-            maximum number of iterations permitted (prevent infinite loops if
-            convergence not reached)
+            maximum number of iterations permitted during gradient descent
+            (prevents infinite loop if convergence not reached)
 
         Returns
         -------
@@ -66,3 +71,38 @@ class LogisticRegression:
             log loss or accuracy score depending on the metric parameter
         """
         pass
+
+    def _gradient_descent(self, X, y, intercept, learning_rate, convergence_change, max_iter):
+        """ Solves for betas using gradient descent
+
+        Parameters
+        ----------
+        X : numpy array
+            training data
+        y : numpy array
+            actual 0 and 1 class labels for test data
+        intercept : bool
+            if True include intercept
+            if False do not include intercept
+        learning_rate : float
+            learning rate for gradient descent
+        converge_change : float
+            threshold for reaching convergence during gradient descent
+        max_iter : int
+            maximum number of iterations permitted during gradient descent
+            (prevents infinite loop if convergence not reached)
+
+        Returns
+        -------
+        numpy array
+            beta values for logistic regression model
+        """
+        if intercept:
+            print('intercept not yet implemented')
+            return
+        else:
+            betas = np.zeros(X.shape[1])
+            # TODO continue writing me
+
+    def _logit(self, X, betas):
+        return 1 / (1 + np.exp(-X.dot(betas)))
