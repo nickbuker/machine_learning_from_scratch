@@ -4,12 +4,16 @@ import numpy as np
 def RSS(y, y_hat):
     """ Residual Sum of Squares
 
-    :param y: numpy array
+    Parameters
+    ----------
+    y : numpy array
         y values
-    :param y_hat: numpy array
+    y_hat : numpy array
         y values estimated by model
 
-    :return: float
+    Returns
+    -------
+    float
         residual sum of squares
     """
     return np.sum((y - y_hat) ** 2)
@@ -18,10 +22,14 @@ def RSS(y, y_hat):
 def TSS(y):
     """ Total Sum of Squares
 
-    :param y: numpy array
+    Parameters
+    ----------
+    y : numpy array
         y values
 
-    :return: float
+    Returns
+    -------
+    float
         total sum of squares
     """
     return np.sum((y - np.mean(y)) ** 2)
@@ -30,12 +38,16 @@ def TSS(y):
 def ESS(y, y_hat):
     """ Explained Sum of Squares
 
-    :param y: numpy array
+    Parameters
+    ----------
+    y : numpy array
         y values
-    :param y_hat: numpy array
-        yes values estimated by model
+    y_hat : numpy array
+        y values estimated by model
 
-    :return: float
+    Returns
+    -------
+    float
         explained sum of squares
     """
     return np.sum((y_hat - np.mean(y)) ** 2)
@@ -44,12 +56,16 @@ def ESS(y, y_hat):
 def R2(y, y_hat):
     """ R squared (coefficient of determination)
 
-    :param y: numpy array
+    Parameters
+    ----------
+    y : numpy array
         y values
-    :param y_hat: numpy array
+    y_hat : numpy array
         y values estimated by model
 
-    :return: float
+    Returns
+    -------
+    float
         R squared
     """
     return 1 - (RSS(y, y_hat) / TSS(y))
@@ -58,12 +74,16 @@ def R2(y, y_hat):
 def accuracy(y, y_pred):
     """ Accuracy of classification model
 
-    :param y: numpy array
+    Parameters
+    ----------
+    y : numpy array
         class labels
-    :param y_pred: numpy array
+    y_pred : numpy array
         classes predicted by model
 
-    :return: float
+    Returns
+    -------
+    float
         accuracy
     """
     return sum(y == y_pred) / len(y)
@@ -72,12 +92,16 @@ def accuracy(y, y_pred):
 def log_loss(y, y_prob):
     """ Log Loss
 
-    :param y: numpy array
-        0 or 1 class labels
-    :param y_prob: numpy array
+    Parameters
+    ----------
+    y : numpy array
+        actual 0 or 1 class labels
+    y_prob : numpy array
         estimated probability of belonging to class 1
 
-    :return: float
+    Returns
+    -------
+    float
         log loss
     """
     return -sum((y * np.log(y_prob)) + ((1 - y) * np.log(1 - y_prob))) / len(y)
