@@ -88,7 +88,7 @@ class KNNClassifier:
                 if len(k_dist) < self.k:
                     k_dist.append((d, self.y_train[i]))
                     k_dist.sort()
-                else d < k_dist[-1][0]:
+                elif d < k_dist[-1][0]:
                     k_dist[-1] = (d, self.y_train[i])
                     k_dist.sort()
             return self._assign(k_dist, weights)
