@@ -7,7 +7,7 @@ class LogisticRegression:
     def __init__(self):
         pass
 
-    def fit(self, X, y, intercept=False, learning_rate=0.001,
+    def fit(self, X, y, learning_rate=0.001,
             converge_change=0.001, max_iter=10000):
         """ Takes in training data and calculates betas
 
@@ -17,9 +17,6 @@ class LogisticRegression:
             training data
         y : numpy array
             actual 0 and 1 class labels for training data
-        intercept : bool
-            if True include intercept
-            if False do not include intercept
         learning_rate : float
             learning rate for gradient descent
         converge_change : float
@@ -32,9 +29,10 @@ class LogisticRegression:
         -------
         None
         """
+        intercept_col = np.ones(X.shape[0])
+        X = np.insert(X, 0, intercept_col, axis=1)
         self.betas = self._gradient_descent(X=X,
                                             y=y,
-                                            intercept=intercept,
                                             learning_rate=learning_rate,
                                             convergence_change=converge_change,
                                             max_iter=max_iter)
@@ -58,6 +56,8 @@ class LogisticRegression:
         numpy array
             probabilities or predictions for test data depending on the prob parameter
         """
+        intercept_col = np.ones(X.shape[0])
+        X = np.insert(X, 0, intercept_col, axis=1)
         self.y_prob = self._logit(X, self.betas)
         if prob:
             return self.y_prob
@@ -90,7 +90,7 @@ class LogisticRegression:
         else:
             print('valid scoring metrics are log_loss or accuracy')
 
-    def _gradient_descent(self, X, y, intercept, learning_rate, convergence_change, max_iter):
+    def _gradient_descent(self, X, y, learning_rate, convergence_change, max_iter):
         """ Estimates betas using gradient descent
 
         Parameters
@@ -99,9 +99,6 @@ class LogisticRegression:
             training data
         y : numpy array
             actual 0 and 1 class labels for test data
-        intercept : bool
-            if True include intercept
-            if False do not include intercept
         learning_rate : float
             learning rate for gradient descent
         converge_change : float
@@ -116,11 +113,7 @@ class LogisticRegression:
             beta values for logistic regression model
         """
         # initialize variables
-        self.intercept = intercept
-        if self.intercept:
-            betas = np.zeros(X.shape[1] + 1)
-        else:
-            betas = np.zeros(X.shape[1])
+        betas = np.zeros(X.shape[1])
         y_prob = self._logit(X, betas)
         loss = log_loss(y, y_prob)
         change = 1
@@ -128,7 +121,6 @@ class LogisticRegression:
         # loop until convergence or max iterations are reached
         while change > convergence_change and i <= max_iter:
             old_loss = loss
-            # TODO fix broadcasting issue with intercept term
             betas = betas - (learning_rate * self._gradient(betas, X, y))
             y_prob = self._logit(X, betas)
             loss = log_loss(y, y_prob)
@@ -152,10 +144,7 @@ class LogisticRegression:
         numpy array
             probabilities of belonging to class 1
         """
-        if self.intercept:
-            return 1 / (1 + np.exp(-(X.dot(betas[:-1]) + betas[-1])))
-        else:
-            return 1 / (1 + np.exp(-X.dot(betas)))
+        return 1 / (1 + np.exp(-X.dot(betas)))
 
     def _gradient(self, betas, X, y):
         """ Calculates the gradient
