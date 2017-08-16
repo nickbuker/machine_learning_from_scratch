@@ -40,12 +40,9 @@ class KNNClassifier:
         numpy array
             class predictions made by model
         """
-        try:
-            self.k = k
-            self.y_pred = np.apply_along_axis(self._row_dist, 1, X)
-            return self.y_pred
-        except:
-            raise AttributeError('Please fit the model before making predictions.')
+        self.k = k
+        self.y_pred = np.apply_along_axis(self._row_dist, 1, X)
+        return self.y_pred
 
     def score(self, y):
         """ Calculates the accuracy of the model
@@ -60,11 +57,8 @@ class KNNClassifier:
         float
             accuracy of model
         """
-        try:
-            self.accuracy = accuracy(y, self.y_pred)
-            return self.y_pred
-        except:
-            raise AttributeError('Please fit the model before making predictions.')
+        self.accuracy = accuracy(y, self.y_pred)
+        return self.y_pred
 
     def _row_dist(self, row, weights):
         """ Calculate distances to each point in the training data
