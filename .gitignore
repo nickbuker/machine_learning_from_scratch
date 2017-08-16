@@ -1,3 +1,4 @@
 pycharm_src/
 .idea/
 __pycache__/
+*.pyc
