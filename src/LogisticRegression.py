@@ -91,7 +91,7 @@ class LogisticRegression:
             print('valid scoring metrics are log_loss or accuracy')
 
     def _gradient_descent(self, X, y, intercept, learning_rate, convergence_change, max_iter):
-        """ Solves for betas using gradient descent
+        """ Estimates betas using gradient descent
 
         Parameters
         ----------
@@ -115,24 +115,25 @@ class LogisticRegression:
         numpy array
             beta values for logistic regression model
         """
-        if intercept:
-            print('intercept not yet implemented')
-            return
+        # initialize variables
+        self.intercept = intercept
+        if self.intercept:
+            betas = np.zeros(X.shape[1] + 1)
         else:
-            # initialize variables
             betas = np.zeros(X.shape[1])
+        y_prob = self._logit(X, betas)
+        loss = log_loss(y, y_prob)
+        change = 1
+        i = 1
+        # loop until convergence or max iterations are reached
+        while change > convergence_change and i <= max_iter:
+            old_loss = loss
+            # TODO fix broadcasting issue with intercept term
+            betas = betas - (learning_rate * self._gradient(betas, X, y))
             y_prob = self._logit(X, betas)
             loss = log_loss(y, y_prob)
-            change = 1
-            i = 1
-            # loop until convergence or max iterations are reached
-            while change > convergence_change and i <= max_iter:
-                old_loss = loss
-                betas = betas - (learning_rate * self._gradient(betas, X, y))
-                y_prob = self._logit(X, betas)
-                loss = log_loss(y, y_prob)
-                change = old_loss - loss
-                i += 1
+            change = old_loss - loss
+            i += 1
         if i == max_iter:
             print('failed to reach convergence')
         return betas
@@ -151,10 +152,13 @@ class LogisticRegression:
         numpy array
             probabilities of belonging to class 1
         """
-        return 1 / (1 + np.exp(-X.dot(betas)))
+        if self.intercept:
+            return 1 / (1 + np.exp(-(X.dot(betas[:-1]) + betas[-1])))
+        else:
+            return 1 / (1 + np.exp(-X.dot(betas)))
 
     def _gradient(self, betas, X, y):
-        """ Calculates the gradient of the betas
+        """ Calculates the gradient
 
         Parameters
         ----------
@@ -167,7 +171,7 @@ class LogisticRegression:
         Returns
         -------
         numpy array
-            gradient of betas
+            gradient
         """
         diffs = self._logit(X, betas) - y
         return diffs.T.dot(X)
