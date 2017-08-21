@@ -54,7 +54,7 @@ class LogisticRegression:
         Returns
         -------
         numpy array
-            probabilities or predictions for test data depending on the prob parameter
+            probabilities or class predictions for test data depending on the prob parameter
         """
         intercept_col = np.ones(X.shape[0])
         X = np.insert(X, 0, intercept_col, axis=1)
