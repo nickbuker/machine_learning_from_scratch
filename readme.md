@@ -3,61 +3,170 @@
 ##### Simple machine learning algorithms implemented from scratch in Python for the purposes of fun and education. Under construction: More methods to come.
 
 ```Python
+from scoring import log_loss, accuracy
 import numpy as np
-from scoring import R2
 
 
-class SimpleLinearRegression(object):
+class LogisticRegression:
 
     def __init__(self):
         pass
 
-    def fit(self, x, y):
-        """
-        Input: numpy arrays of training data x and y
-        Ouput: prints linear equation for trained model
-        """
-        self.x_train, self.y_train = x, y
-        self.x_bar, self.y_bar = np.mean(x), np.mean(y)
-        self.b1 = self._find_b1()
-        self.b0 = self._find_b0()
-        print 'y_hat = {} + {} * x'.format(self.b1, self.b0)
+    def fit(self, X, y, learning_rate=0.001,
+            converge_change=0.001, max_iter=10000):
+        """ Takes in training data and calculates betas
 
-    def predict(self, x):
-        """
-        Input: numpy array of test data x
-        Ouput: numpy array of predicted y
-        """
-        try:
-            self.y_hat = (self.b1 * x) + self.b0
-            return self.y_hat
-        except AttributeError:
-            print 'Please fit the model before making predictions.'
+        Parameters
+        ----------
+        X : numpy array
+            training data
+        y : numpy array
+            actual 0 and 1 class labels for training data
+        learning_rate : float
+            learning rate for gradient descent
+        converge_change : float
+            threshold for reaching convergence during gradient descent
+        max_iter : int
+            maximum number of iterations permitted during gradient descent
+            (prevents infinite loop if convergence not reached)
 
-    def score(self, y):
+        Returns
+        -------
+        None
         """
-        Input: numpy array of test data y
-        Ouput: R-squared score
-        """
-        try:
-            self.R2 = R2(y, self.y_hat)
-            return self.R2
-        except AttributeError:
-            print 'Please make a prediction before scoring.'
+        intercept_col = np.ones(X.shape[0])
+        X = np.insert(X, 0, intercept_col, axis=1)
+        self.betas = self._gradient_descent(X=X,
+                                            y=y,
+                                            learning_rate=learning_rate,
+                                            convergence_change=converge_change,
+                                            max_iter=max_iter)
 
-    def _find_b1(self):
-        """
-        Input: none
-        Output: slope for linear model
-        """
-        return (np.sum((self.x_train - self.x_bar) *
-                       (self.y_train - self.y_bar)) /
-                np.sum((self.x_train - self.x_bar) ** 2))
+    def predict(self, X, prob=True, threshold=0.5):
+        """ Makes probability or class predictions for test data
 
-    def _find_b0(self):
+        Parameters
+        ----------
+        X : numpy array
+           test data
+        prob : bool
+            if True, returns probability of class 1
+            if False, returns class prediction
+        threshold : float
+            if prob is False, sets probability threshold for class 1
+            if prob is True, this argument has no effect
+
+        Returns
+        -------
+        numpy array
+            probabilities or predictions for test data depending on the prob parameter
         """
-        Input: none
-        Output: intercept for linear model
+        intercept_col = np.ones(X.shape[0])
+        X = np.insert(X, 0, intercept_col, axis=1)
+        self.y_prob = self._logit(X, self.betas)
+        if prob:
+            return self.y_prob
+        else:
+            self.y_pred = np.zeros(len(self.y_prob))
+            # if prob in y_prob >= threshold, convert label to 1
+            np.place(self.y_pred, self.y_prob >= threshold, 1)
+            return self.y_pred
+
+    def score(self, y, metric='log_loss'):
+        """ Scores the predictions
+
+        Parameters
+        ----------
+        y : numpy array
+            actual 0 and 1 class labels for test data
+        metric : string
+            if 'log_loss' then returns log loss
+            if 'accuracy' then returns accuracy
+
+        Returns
+        -------
+        float
+            log loss or accuracy score depending on the metric parameter
         """
-        return self.y_bar - self.b1 * self.x_bar
+        if metric == 'log_loss':
+            return log_loss(y, self.y_prob)
+        elif metric == 'accuracy':
+            return accuracy(y, self.y_pred)
+        else:
+            print('valid scoring metrics are log_loss or accuracy')
+
+    def _gradient_descent(self, X, y, learning_rate, convergence_change, max_iter):
+        """ Estimates betas using gradient descent
+
+        Parameters
+        ----------
+        X : numpy array
+            training data
+        y : numpy array
+            actual 0 and 1 class labels for test data
+        learning_rate : float
+            learning rate for gradient descent
+        converge_change : float
+            threshold for reaching convergence during gradient descent
+        max_iter : int
+            maximum number of iterations permitted during gradient descent
+            (prevents infinite loop if convergence not reached)
+
+        Returns
+        -------
+        numpy array
+            beta values for logistic regression model
+        """
+        # initialize variables
+        betas = np.zeros(X.shape[1])
+        y_prob = self._logit(X, betas)
+        loss = log_loss(y, y_prob)
+        change = 1
+        i = 1
+        # loop until convergence or max iterations are reached
+        while change > convergence_change and i <= max_iter:
+            old_loss = loss
+            betas = betas - (learning_rate * self._gradient(betas, X, y))
+            y_prob = self._logit(X, betas)
+            loss = log_loss(y, y_prob)
+            change = old_loss - loss
+            i += 1
+        if i == max_iter:
+            print('failed to reach convergence')
+        return betas
+
+    def _logit(self, X, betas):
+        """
+
+        Parameters
+        ----------
+        X : numpy array
+            data
+        betas : numpy array
+            beta values for linear equation
+        Returns
+        -------
+        numpy array
+            probabilities of belonging to class 1
+        """
+        return 1 / (1 + np.exp(-X.dot(betas)))
+
+    def _gradient(self, betas, X, y):
+        """ Calculates the gradient
+
+        Parameters
+        ----------
+        betas
+        X : numpy array
+            training data
+        y : : numpy array
+            actual 0 and 1 class labels for test data
+
+        Returns
+        -------
+        numpy array
+            gradient
+        """
+        diffs = self._logit(X, betas) - y
+        return diffs.T.dot(X)
 ```
