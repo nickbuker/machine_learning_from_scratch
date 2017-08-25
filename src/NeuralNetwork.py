@@ -7,8 +7,8 @@ class NeuralNetwork:
     def __init__(self):
         pass
 
-    def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.0001,
-            reg_factor=0.0001, random_seed=97, print_loss=False):
+    def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.001,
+            reg_factor=0.001, random_seed=97, print_loss=False):
         """ Takes in test data and trains model
 
         Parameters
@@ -32,7 +32,7 @@ class NeuralNetwork:
         random_seed : int
             optional random seed for initial weights generated
         print_loss : bool
-            specifies whether or not to print loss every 10000 epochs during training
+            specifies whether or not to print loss every 10000 epochs during training (default value False)
 
         Returns
         -------
@@ -118,11 +118,11 @@ class NeuralNetwork:
         epochs : int
             number of full passes through training data
         learning_rate : float
-            learning rate for gradient descent (default value 0.01)
+            learning rate for gradient descent (default value 0.001)
         reg_parameter : float
-            regularization strength (default value 0.01)
+            regularization strength (default value 0.001)
         print_loss : bool
-            specifies whether or not to print loss every 10000 epochs during training
+            specifies whether or not to print loss every 100000 epochs during training
 
         Returns
         -------
@@ -140,7 +140,7 @@ class NeuralNetwork:
             self.model['b1'] += -learning_rate * db1
             self.model['W2'] += -learning_rate * dW2
             self.model['b2'] += -learning_rate * db2
-            if i % 10000 == 0:
+            if print_loss and i % 10000 == 0:
                 print('Loss after {0} epochs: {1}'.format(i, self._calculate_loss(X, y, reg_parameter)))
 
     def _forward_propagation(self, X):
