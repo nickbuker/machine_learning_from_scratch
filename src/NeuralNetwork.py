@@ -24,9 +24,9 @@ class NeuralNetwork:
         out_nodes : int
             number of nodes in output layer
         epochs : int
-            number of full passes through training data (default value 10000)
+            number of full passes through training data (default value 100000)
         learning_rate : float
-            learning rate for gradient descent (default value 0.01)
+            learning rate for gradient descent (default value 0.001)
         reg_factor : float
             regularization strength (default value 0.01)
         random_seed : int
@@ -49,7 +49,7 @@ class NeuralNetwork:
         self.model = {'W1': W1, 'b1': b1,
                       'W2': W2, 'b2': b2,
                       'nodes': nodes}
-        # use gradient descent to estimate weights and betas
+        # use gradient descent to estimate weights and biases
         self._gradient_descent(X, y, epochs, learning_rate, reg_factor, print_loss)
 
     def predict(self, X, prob=True):
@@ -75,7 +75,7 @@ class NeuralNetwork:
             return np.argmax(probs, axis=1)
 
     def score(self, X, y, metric='log_loss'):
-        """
+        """ Calculates the log loss or accuracy of the model
 
         Parameters
         ----------
@@ -89,7 +89,8 @@ class NeuralNetwork:
 
         Returns
         -------
-
+        float
+            log loss or accuracy depending on the value of the metric parameter
         """
         if metric == 'log_loss':
             proba = self.predict(X, prob=True)
@@ -144,7 +145,7 @@ class NeuralNetwork:
                 print('Loss after {0} epochs: {1}'.format(i, self._calculate_loss(X, y, reg_parameter)))
 
     def _forward_propagation(self, X):
-        """
+        """ Forward propagation method
 
         Parameters
         ----------
@@ -153,6 +154,8 @@ class NeuralNetwork:
 
         Returns
         -------
+        numpy array
+            activations
         numpy array
             probabilities of belonging to class
         """
@@ -164,18 +167,29 @@ class NeuralNetwork:
         return a1, probs
 
     def _back_propagation(self, X, y, a1, probs):
-        """
+        """ Back propagation method
 
         Parameters
         ----------
-        X
-        y
-        a1
-        probs
+        X : numpy array
+            training data
+        y : numpy array
+            labels for training data
+        a1 : numpy array
+            activations
+        probs : numpy array
+            probabilities of belonging to class
 
         Returns
         -------
-
+        float
+            partial derivative of input layer weights
+        float
+            partial derivative of input layer biases
+        float
+            partial derivative of hidden layer weights
+        float
+            partial derivative of hidden layer biases
         """
         delta3 = probs
         delta3[range(len(a1)), y] -= 1
@@ -187,17 +201,21 @@ class NeuralNetwork:
         return dW1, db1, dW2, db2
 
     def _calculate_loss(self, X, y, reg_parameter):
-        """
+        """ Calculates total loss on dataset
 
         Parameters
         ----------
-        X
-        y
-        reg_parameter
+        X : numpy array
+            training data
+        y : numpy array
+            labels for training data
+        reg_parameter : float
+            regularization strength
 
         Returns
         -------
-
+        float
+            total loss on dataset
         """
         a1, probs = self._forward_propagation(X)
         log_probs = -np.log(probs[range(len(a1)), y])
