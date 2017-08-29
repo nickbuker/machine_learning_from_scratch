@@ -3,6 +3,9 @@ from scoring import accuracy, log_loss
 
 
 class NeuralNetwork:
+    """
+    A simple neural network implemented in Python using numpy
+    """
 
     def __init__(self):
         pass
