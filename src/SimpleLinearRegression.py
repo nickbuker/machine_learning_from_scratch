@@ -3,9 +3,12 @@ from scoring import R2
 
 
 class SimpleLinearRegression:
+    """
+    Simple linear regression implemented in Python using numpy
+    """
 
     def __init__(self):
-        pass
+        self.model = {}
 
     def fit(self, x, y):
         """ takes in training data and calculates betas
@@ -20,13 +23,11 @@ class SimpleLinearRegression:
         Returns
         -------
         prints linear equation for trained model
-
         """
-        self.x_train, self.y_train = x, y
-        self.x_bar, self.y_bar = np.mean(x), np.mean(y)
-        self.b1 = self._find_b1()
-        self.b0 = self._find_b0()
-        print('y_hat = {} + {} * x'.format(self.b1, self.b0))
+        x_bar, y_bar = np.mean(x), np.mean(y)
+        self._find_b1(x, x_bar, y, y_bar)
+        self._find_b0(y_bar, x_bar)
+        print('y_hat = {} + {} * x'.format(self.model['b1'], self.model['b0']))
 
     def predict(self, x):
         """ makes predictions on test data
@@ -41,14 +42,16 @@ class SimpleLinearRegression:
         numpy array
             estimated y values for test data
         """
-        self.y_hat = (self.b1 * x) + self.b0
-        return self.y_hat
+        y_hat = (self.model['b1'] * x) + self.model['b0']
+        return y_hat
 
-    def score(self, y):
+    def score(self, x, y):
         """ calculates R squared for test data
 
         Parameters
         ----------
+        x : numpy array
+            test data
         y : numpy array
             actual y values for test data
 
@@ -57,27 +60,41 @@ class SimpleLinearRegression:
         float
             R squared for test data
         """
-        self.R2 = R2(y, self.y_hat)
-        return self.R2
+        y_hat = (self.model['b1'] * x) + self.model['b0']
+        return R2(y, y_hat)
 
-    def _find_b1(self):
-        """ calculates slope (beta 1) for linear model
+    def _find_b1(self, x, x_bar, y, y_bar):
+        """ calculates slope (beta 1) for linear model and adds it to model dict
+
+        Parameters
+        ----------
+        x : numpy array
+            training data
+        x_bar : float
+            mean of training data
+        y : numpy array
+            actual y values for training data
+        y_bar : float
+            mean of y values for training data
 
         Returns
         -------
-        float
-            slope (beta 1) for linear model
+        None
         """
-        return (np.sum((self.x_train - self.x_bar) *
-                       (self.y_train - self.y_bar)) /
-                np.sum((self.x_train - self.x_bar) ** 2))
+        self.model['b1'] = (np.sum((x - x_bar) * (y - y_bar)) / np.sum((x - x_bar) ** 2))
 
-    def _find_b0(self):
-        """ calculates intercept (beta 0) for linear model
+    def _find_b0(self, y_bar, x_bar):
+        """ calculates intercept (beta 0) for linear model and adds it to model dict
+
+        Parameters
+        ----------
+        y_bar : float
+            mean of training data
+        x_bar : float
+            mean of y values for training data
 
         Returns
         -------
-        float
-            intercept (beta 0) for linear model
+        None
         """
-        return self.y_bar - self.b1 * self.x_bar
+        self.model['b0'] = y_bar - self.model['b1'] * x_bar
