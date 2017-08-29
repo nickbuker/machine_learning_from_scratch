@@ -3,6 +3,9 @@ from scoring import R2
 
 
 class MultipleLinearRegression:
+    """
+    Multiple linear regression implemented in Python using numpy
+    """
 
     def __init__(self):
         pass
@@ -22,9 +25,8 @@ class MultipleLinearRegression:
         prints betas for linear model
         """
         intercept_col = np.ones(X.shape[0])
-        self.X_train = np.insert(X, 0, intercept_col, axis=1)
-        self.y_train = y
-        self.betas = self._find_betas()
+        X = np.insert(X, 0, intercept_col, axis=1)
+        self.betas = self._find_betas(X, y)
         for i, beta in enumerate(self.betas):
             print('B{}: {}'.format(i, beta), end=" ")
 
@@ -42,15 +44,17 @@ class MultipleLinearRegression:
             estimated y values for test data
         """
         intercept_col = np.ones(X.shape[0])
-        self.X_test = np.insert(X, 0, intercept_col, axis=1)
-        self.y_hat = self.X_test.dot(self.betas)
-        return self.y_hat
+        X = np.insert(X, 0, intercept_col, axis=1)
+        y_hat = X.dot(self.betas)
+        return y_hat
 
-    def score(self, y):
+    def score(self, X, y):
         """ calculates R squared for test data
 
         Parameters
         ----------
+        X : numpy array
+            test data
         y : numpy array
             actual y values for test data
 
@@ -59,11 +63,18 @@ class MultipleLinearRegression:
         float
             R squared for test data
         """
-        self.R2 = R2(y, self.y_hat)
-        return self.R2
+        y_hat = self.predict(X)
+        return R2(y, y_hat)
 
-    def _find_betas(self):
+    def _find_betas(self, X, y):
         """ calculates the beta values for the linear model
+
+        Parameters
+        ----------
+        X : numpy array
+            test data
+        y : numpy array
+            actual y values for test data
 
         Returns
         -------
@@ -71,4 +82,4 @@ class MultipleLinearRegression:
             betas for linear model
         """
         # solve for betas using (X'X)^-1 X'Y
-        return np.linalg.inv(self.X_train.T.dot(self.X_train)).dot(self.X_train.T).dot(self.y_train)
+        return np.linalg.inv(X.T.dot(X)).dot(X.T).dot(y)
