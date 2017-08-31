@@ -3,6 +3,9 @@ import numpy as np
 
 
 class LogisticRegression:
+    """
+    Logistic regression implemented in Python using numpy
+    """
 
     def __init__(self):
         pass
@@ -58,25 +61,30 @@ class LogisticRegression:
         """
         intercept_col = np.ones(X.shape[0])
         X = np.insert(X, 0, intercept_col, axis=1)
-        self.y_prob = self._logit(X, self.betas)
+        y_prob = self._logit(X, self.betas)
         if prob:
-            return self.y_prob
+            return y_prob
         else:
-            self.y_pred = np.zeros(len(self.y_prob))
+            y_pred = np.zeros(len(y_prob))
             # if prob in y_prob >= threshold, convert label to 1
-            np.place(self.y_pred, self.y_prob >= threshold, 1)
-            return self.y_pred
+            np.place(y_pred, y_prob >= threshold, 1)
+            return y_pred
 
-    def score(self, y, metric='log_loss'):
+    def score(self, X, y, metric='log_loss', threshold=0.5):
         """ Scores the predictions
 
         Parameters
         ----------
+        X : numpy array
+            test data
         y : numpy array
             actual 0 and 1 class labels for test data
         metric : string
             if 'log_loss' then returns log loss
             if 'accuracy' then returns accuracy
+        threshold : float
+            if prob is False, sets probability threshold for class 1
+            if prob is True, this argument has no effect
 
         Returns
         -------
@@ -84,9 +92,11 @@ class LogisticRegression:
             log loss or accuracy score depending on the metric parameter
         """
         if metric == 'log_loss':
-            return log_loss(y, self.y_prob)
+            y_prob = self.predict(X, prob=True)
+            return log_loss(y, y_prob)
         elif metric == 'accuracy':
-            return accuracy(y, self.y_pred)
+            y_pred = self.predict(X, prob=False, threshold=threshold)
+            return accuracy(y, y_pred)
         else:
             print('valid scoring metrics are log_loss or accuracy')
 
@@ -101,7 +111,7 @@ class LogisticRegression:
             actual 0 and 1 class labels for test data
         learning_rate : float
             learning rate for gradient descent
-        converge_change : float
+        convergence_change : float
             threshold for reaching convergence during gradient descent
         max_iter : int
             maximum number of iterations permitted during gradient descent
