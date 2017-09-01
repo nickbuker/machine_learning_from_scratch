@@ -10,8 +10,8 @@ class NeuralNetwork:
     def __init__(self):
         pass
 
-    def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.001,
-            reg_factor=0.001, random_seed=97, print_loss=False):
+    def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.01,
+            reg_factor=0.001, decay_epochs=20, decay_amount=0.1, random_seed=97, print_loss=False):
         """ Takes in test data and trains model
 
         Parameters
@@ -29,9 +29,13 @@ class NeuralNetwork:
         epochs : int
             number of full passes through training data (default value 100000)
         learning_rate : float
-            learning rate for gradient descent (default value 0.001)
+            learning rate for gradient descent (default value 0.01)
         reg_factor : float
-            regularization strength (default value 0.01)
+            regularization strength (default value 0.001)
+        decay_epochs : int
+            number of epochs between each learning rate decay
+        decay_amount : float
+            proportion to decay the learning rate by (learning_rate *= (1 - decay_amount))
         random_seed : int
             optional random seed for initial weights generated
         print_loss : bool
@@ -53,7 +57,7 @@ class NeuralNetwork:
                       'W2': W2, 'b2': b2,
                       'nodes': nodes}
         # use gradient descent to estimate weights and biases
-        self._gradient_descent(X, y, epochs, learning_rate, reg_factor, print_loss)
+        self._gradient_descent(X, y, epochs, learning_rate, reg_factor, decay_epochs, decay_amount, print_loss)
 
     def predict(self, X, prob=True):
         """ Makes probability or class predictions for test data
@@ -102,7 +106,7 @@ class NeuralNetwork:
             for i in range(proba.shape[1]):
                 # create array of 0 and 1 for each class
                 class_i = (y == i).astype(int)
-                temp_loss += log_loss(class_i, proba[:,i])
+                temp_loss += log_loss(class_i, proba[:, i])
             return temp_loss
         elif metric == 'accuracy':
             preds = self.predict(X, prob=False)
@@ -110,7 +114,7 @@ class NeuralNetwork:
         else:
             print('valid scoring metrics are log_loss or accuracy')
 
-    def _gradient_descent(self, X, y, epochs, learning_rate, reg_parameter, print_loss):
+    def _gradient_descent(self, X, y, epochs, learning_rate, reg_parameter, decay_epochs, decay_amount, print_loss):
         """ Optimizes model using gradient descent
 
         Parameters
@@ -122,11 +126,15 @@ class NeuralNetwork:
         epochs : int
             number of full passes through training data
         learning_rate : float
-            learning rate for gradient descent (default value 0.001)
+            learning rate for gradient descent (default value 0.01)
         reg_parameter : float
             regularization strength (default value 0.001)
+        decay_epochs : int
+            number of epochs between each learning rate decay
+        decay_amount : float
+            proportion to decay the learning rate by (learning_rate *= (1 - decay_amount))
         print_loss : bool
-            specifies whether or not to print loss every 100000 epochs during training
+            specifies whether or not to print loss every 10000 epochs during training
 
         Returns
         -------
@@ -144,6 +152,9 @@ class NeuralNetwork:
             self.model['b1'] += -learning_rate * db1
             self.model['W2'] += -learning_rate * dW2
             self.model['b2'] += -learning_rate * db2
+            # decay learning rate after decay_epochs
+            if i != 0 and i % decay_epochs == 0:
+                learning_rate *= (1 - decay_amount)
             if print_loss and i % 10000 == 0:
                 print('Loss after {0} epochs: {1}'.format(i, self._calculate_loss(X, y, reg_parameter)))
 
