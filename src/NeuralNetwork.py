@@ -11,7 +11,7 @@ class NeuralNetwork:
         pass
 
     def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.01,
-            reg_factor=0.001, decay_epochs=20, decay_amount=0.1, random_seed=97, print_loss=False):
+            reg_factor=0.001, decay_epochs=20, decay_amount=0.001, random_seed=97, print_loss=False):
         """ Takes in test data and trains model
 
         Parameters
@@ -35,7 +35,7 @@ class NeuralNetwork:
         decay_epochs : int
             number of epochs between each learning rate decay
         decay_amount : float
-            proportion to decay the learning rate by (learning_rate *= (1 - decay_amount))
+            proportion to decay the learning rate by learning_rate *= (1 - decay_amount) (default value 0.001)
         random_seed : int
             optional random seed for initial weights generated
         print_loss : bool
@@ -130,9 +130,9 @@ class NeuralNetwork:
         reg_parameter : float
             regularization strength (default value 0.001)
         decay_epochs : int
-            number of epochs between each learning rate decay
+            number of epochs between each learning rate decay (default value 20)
         decay_amount : float
-            proportion to decay the learning rate by (learning_rate *= (1 - decay_amount))
+            proportion to decay the learning rate by learning_rate *= (1 - decay_amount) (default value 0.001)
         print_loss : bool
             specifies whether or not to print loss every 10000 epochs during training
 
@@ -144,7 +144,7 @@ class NeuralNetwork:
         for i in range(epochs):
             a1, probs = self._forward_propagation(X)
             dW1, db1, dW2, db2 = self._back_propagation(X, y, a1, probs)
-            # add regularization terms
+            # apply regularization parameter
             dW1 += reg_parameter * self.model['W1']
             dW2 += reg_parameter * self.model['W2']
             # gradient descent parameter update
