@@ -3,6 +3,9 @@ from scoring import accuracy
 
 
 class KNNClassifier:
+    """
+    K nearest neighbors classifier implemented in Python using numpy
+    """
 
     def __init__(self):
         pass
