@@ -121,7 +121,7 @@ class NeuralNetwork:
         else:
             print('valid scoring metrics are log_loss or accuracy')
 
-    def _gradient_descent(self, X, y, epochs, learning_rate, reg_parameter, decay_epochs,
+    def _gradient_descent(self, X, y, epochs, learning_rate, reg_factor, decay_epochs,
                           decay_amount, batch_size, print_loss):
         """ Optimizes model using gradient descent
 
@@ -135,7 +135,7 @@ class NeuralNetwork:
             number of full passes through training data
         learning_rate : float
             learning rate for gradient descent (default value 0.01)
-        reg_parameter : float
+        reg_factor : float
             regularization strength (default value 0.001)
         decay_epochs : int
             number of epochs between each learning rate decay (default value 20)
@@ -166,8 +166,8 @@ class NeuralNetwork:
                 a1, probs = self._forward_propagation(X_batch)
                 dW1, db1, dW2, db2 = self._back_propagation(X_batch, y_batch, a1, probs)
                 # apply regularization parameter
-                dW1 += reg_parameter * self.model['W1']
-                dW2 += reg_parameter * self.model['W2']
+                dW1 += reg_factor * self.model['W1']
+                dW2 += reg_factor * self.model['W2']
                 # gradient descent parameter update
                 self.model['W1'] += -learning_rate * dW1
                 self.model['b1'] += -learning_rate * db1
@@ -179,7 +179,7 @@ class NeuralNetwork:
             if n != 0 and n % decay_epochs == 0:
                 learning_rate *= (1 - decay_amount)
             if print_loss and n % 10000 == 0:
-                print('Loss after {0} epochs: {1}'.format(n, self._calculate_loss(X, y, reg_parameter)))
+                print('Loss after {0} epochs: {1}'.format(n, self._calculate_loss(X, y, reg_factor)))
 
     def _forward_propagation(self, X):
         """ Forward propagation method
@@ -237,7 +237,7 @@ class NeuralNetwork:
         db1 = np.sum(delta2, axis=0)
         return dW1, db1, dW2, db2
 
-    def _calculate_loss(self, X, y, reg_parameter):
+    def _calculate_loss(self, X, y, reg_factor):
         """ Calculates total loss on dataset
 
         Parameters
@@ -246,7 +246,7 @@ class NeuralNetwork:
             training data
         y : numpy array
             labels for training data
-        reg_parameter : float
+        reg_factor : float
             regularization strength
 
         Returns
@@ -257,6 +257,6 @@ class NeuralNetwork:
         a1, probs = self._forward_propagation(X)
         log_probs = -np.log(probs[range(len(a1)), y])
         loss = np.sum(log_probs)
-        loss += (reg_parameter / 2) * (np.sum(np.square(self.model['W1'])) +
+        loss += (reg_factor / 2) * (np.sum(np.square(self.model['W1'])) +
                                        np.sum(np.square(self.model['W2'])))
         return (1 / len(a1)) * loss
