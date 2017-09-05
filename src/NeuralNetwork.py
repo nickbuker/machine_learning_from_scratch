@@ -7,11 +7,22 @@ class NeuralNetwork:
     A simple neural network implemented in Python using numpy
     """
 
-    def __init__(self):
-        pass
+    def __init__(self, in_nodes, hid_nodes, out_nodes):
+        """ Takes in number of nodes in each layer
 
-    def fit(self, X, y, in_nodes, hid_nodes, out_nodes, epochs=100000, learning_rate=0.01,
-            reg_factor=0.001, decay_epochs=20, decay_amount=0.001, random_seed=97, print_loss=False):
+        Parameters
+        ----------
+        in_nodes : int
+            number of nodes in the input layer
+        hid_nodes : int
+            number of nodes in hidden layer
+        out_nodes : int
+            number of nodes in output layer
+        """
+        self.model = {'nodes':(in_nodes, hid_nodes, out_nodes)}
+
+    def fit(self, X, y, epochs=100000, learning_rate=0.01, reg_factor=0.001, decay_epochs=20,
+            decay_amount=0.001, batch_size=None, random_seed=97, print_loss=False):
         """ Takes in test data and trains model
 
         Parameters
@@ -20,12 +31,6 @@ class NeuralNetwork:
             training data
         y : numpy array
             labels for training data
-        in_nodes : int
-            number of nodes in the input layer
-        hid_nodes : int
-            number of nodes in hidden layer
-        out_nodes : int
-            number of nodes in output layer
         epochs : int
             number of full passes through training data (default value 100000)
         learning_rate : float
@@ -36,6 +41,9 @@ class NeuralNetwork:
             number of epochs between each learning rate decay
         decay_amount : float
             proportion to decay the learning rate by learning_rate *= (1 - decay_amount) (default value 0.001)
+        batch_size : None or int
+            if is None, gradient descent conducted on all observations
+            if int, specifies the number of observations used for batch gradient descent
         random_seed : int
             optional random seed for initial weights generated
         print_loss : bool
@@ -45,19 +53,18 @@ class NeuralNetwork:
         -------
         None
         """
-        # initialize parameters to some random values
+        # initialize parameters to some random values and store model features
+        in_nodes = self.model['nodes'][0]
+        hid_nodes = self.model['nodes'][1]
+        out_nodes = self.model['nodes'][2]
         np.random.seed(random_seed)
-        nodes = (in_nodes, hid_nodes, out_nodes)
-        W1 = np.random.randn(in_nodes, hid_nodes) / np.sqrt(in_nodes)
-        b1 = np.zeros((1, hid_nodes))
-        W2 = np.random.randn(hid_nodes, out_nodes) / np.sqrt(hid_nodes)
-        b2 = np.zeros((1, out_nodes))
-        # store model features
-        self.model = {'W1': W1, 'b1': b1,
-                      'W2': W2, 'b2': b2,
-                      'nodes': nodes}
+        self.model['W1'] = np.random.randn(in_nodes, hid_nodes) / np.sqrt(in_nodes)
+        self.model['b1'] = np.zeros((1, hid_nodes))
+        self.model['W2'] = np.random.randn(hid_nodes, out_nodes) / np.sqrt(hid_nodes)
+        self.model['b2'] = np.zeros((1, out_nodes))
         # use gradient descent to estimate weights and biases
-        self._gradient_descent(X, y, epochs, learning_rate, reg_factor, decay_epochs, decay_amount, print_loss)
+        self._gradient_descent(X, y, epochs, learning_rate, reg_factor, decay_epochs,
+                               decay_amount, batch_size, print_loss)
 
     def predict(self, X, prob=True):
         """ Makes probability or class predictions for test data
@@ -114,7 +121,8 @@ class NeuralNetwork:
         else:
             print('valid scoring metrics are log_loss or accuracy')
 
-    def _gradient_descent(self, X, y, epochs, learning_rate, reg_parameter, decay_epochs, decay_amount, print_loss):
+    def _gradient_descent(self, X, y, epochs, learning_rate, reg_parameter, decay_epochs,
+                          decay_amount, batch_size, print_loss):
         """ Optimizes model using gradient descent
 
         Parameters
@@ -133,6 +141,9 @@ class NeuralNetwork:
             number of epochs between each learning rate decay (default value 20)
         decay_amount : float
             proportion to decay the learning rate by learning_rate *= (1 - decay_amount) (default value 0.001)
+        batch_size : None or int
+            if is None, gradient descent conducted on all observations
+            if int, specifies the number of observations used for batch gradient descent
         print_loss : bool
             specifies whether or not to print loss every 10000 epochs during training
 
@@ -141,22 +152,34 @@ class NeuralNetwork:
         dict
             trained model
         """
-        for i in range(epochs):
-            a1, probs = self._forward_propagation(X)
-            dW1, db1, dW2, db2 = self._back_propagation(X, y, a1, probs)
-            # apply regularization parameter
-            dW1 += reg_parameter * self.model['W1']
-            dW2 += reg_parameter * self.model['W2']
-            # gradient descent parameter update
-            self.model['W1'] += -learning_rate * dW1
-            self.model['b1'] += -learning_rate * db1
-            self.model['W2'] += -learning_rate * dW2
-            self.model['b2'] += -learning_rate * db2
+        if batch_size is None:
+            batch_size = X.shape[0]
+        # create index for sampling
+        idx = np.arange(0, X.shape[0])
+        for n in range(epochs):
+            # shuffle order of observations and set indices for batching
+            np.random.shuffle(idx)
+            i, j = 0, batch_size
+            for _ in range(0, X.shape[0] - 1, batch_size):
+                X_batch = X[idx[i: j]]
+                y_batch = y[idx[i: j]]
+                a1, probs = self._forward_propagation(X_batch)
+                dW1, db1, dW2, db2 = self._back_propagation(X_batch, y_batch, a1, probs)
+                # apply regularization parameter
+                dW1 += reg_parameter * self.model['W1']
+                dW2 += reg_parameter * self.model['W2']
+                # gradient descent parameter update
+                self.model['W1'] += -learning_rate * dW1
+                self.model['b1'] += -learning_rate * db1
+                self.model['W2'] += -learning_rate * dW2
+                self.model['b2'] += -learning_rate * db2
+                i += batch_size
+                j += batch_size
             # decay learning rate after decay_epochs
-            if i != 0 and i % decay_epochs == 0:
+            if n != 0 and n % decay_epochs == 0:
                 learning_rate *= (1 - decay_amount)
-            if print_loss and i % 10000 == 0:
-                print('Loss after {0} epochs: {1}'.format(i, self._calculate_loss(X, y, reg_parameter)))
+            if print_loss and n % 10000 == 0:
+                print('Loss after {0} epochs: {1}'.format(n, self._calculate_loss(X, y, reg_parameter)))
 
     def _forward_propagation(self, X):
         """ Forward propagation method
