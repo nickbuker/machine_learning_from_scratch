@@ -54,6 +54,9 @@ class NeuralNetwork:
         None
         """
         # initialize parameters to some random values and store model features
+        in_nodes = self.model['nodes'][0]
+        hid_nodes = self.model['nodes'][1]
+        out_nodes = self.model['nodes'][2]
         np.random.seed(random_seed)
         self.model['W1'] = np.random.randn(in_nodes, hid_nodes) / np.sqrt(in_nodes)
         self.model['b1'] = np.zeros((1, hid_nodes))
@@ -158,8 +161,8 @@ class NeuralNetwork:
             np.random.shuffle(idx)
             i, j = 0, batch_size
             for _ in range(0, X.shape[0] - 1, batch_size):
-                X_batch = X[idx[i, j]]
-                y_batch = y[idx[i, j]]
+                X_batch = X[idx[i: j]]
+                y_batch = y[idx[i: j]]
                 a1, probs = self._forward_propagation(X_batch)
                 dW1, db1, dW2, db2 = self._back_propagation(X_batch, y_batch, a1, probs)
                 # apply regularization parameter
@@ -176,7 +179,7 @@ class NeuralNetwork:
             if n != 0 and n % decay_epochs == 0:
                 learning_rate *= (1 - decay_amount)
             if print_loss and n % 10000 == 0:
-                print('Loss after {0} epochs: {1}'.format(i, self._calculate_loss(X, y, reg_parameter)))
+                print('Loss after {0} epochs: {1}'.format(n, self._calculate_loss(X, y, reg_parameter)))
 
     def _forward_propagation(self, X):
         """ Forward propagation method
