@@ -149,6 +149,8 @@ class NeuralNetwork:
         dict
             trained model
         """
+        if batch_size is None:
+            batch_size = X.shape[0]
         # create index for sampling
         idx = np.arange(0, X.shape[0])
         for n in range(epochs):
