@@ -1,6 +1,7 @@
 import numpy as np
 import pandas as pd
 from scoring import R2
+from Tree import Tree
 
 
 class DecisionTreeRegressor:
@@ -9,6 +10,7 @@ class DecisionTreeRegressor:
         pass
 
     def fit(self, X, y, max_depth):
+        self.tree = Tree()
         self.rules = []
         X = self._check_x_data_type(X)
         X['y'] = y
@@ -39,4 +41,11 @@ class DecisionTreeRegressor:
         else:
             return X
 
+    def _find_best_feature(self):
+        pass
+
+    def _find_best_split(self):
+        pass
+
     def _generate_y_hat(self):
+        pass
