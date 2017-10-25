@@ -1,4 +1,3 @@
-# TODO min leaf size? Fix Index error if too deep.
 import numpy as np
 import pandas as pd
 from scoring import R2, RSS
@@ -11,6 +10,18 @@ class DecisionTreeRegressor:
         pass
 
     def fit(self, X, y, max_depth):
+        """
+
+        Parameters
+        ----------
+        X
+        y
+        max_depth
+
+        Returns
+        -------
+
+        """
         self.tree = Tree()
         self.max_depth = max_depth
         data = self._check_x_data_type(X)
@@ -24,20 +35,54 @@ class DecisionTreeRegressor:
         X = self._check_x_data_type(X)
 
     def score(self, y, y_hat):
+        """
+
+        Parameters
+        ----------
+        y
+        y_hat
+
+        Returns
+        -------
+
+        """
         return R2(y, y_hat)
 
     def _check_x_data_type(self, X):
+        """
+
+        Parameters
+        ----------
+        X
+
+        Returns
+        -------
+
+        """
         if not isinstance(X, pd.core.frame.DataFrame):
             return pd.DataFrame(X)
         else:
             return X
 
     def _find_best_feature(self, data, data_cols, tree, k='root', i=1):
+        """
+
+        Parameters
+        ----------
+        data
+        data_cols
+        tree
+        k
+        i
+
+        Returns
+        -------
+
+        """
         results = [np.inf]
         for col in data_cols:
             temp_results = self._find_best_split(col=data[col].values,
-                                                 y=data['y'].values,
-                                                 i=i)
+                                                 y=data['y'].values)
             if temp_results[-1] < results[-1]:
                 results = [col] + temp_results  # concat the lists together
         if i == self.max_depth or results[4] == 1 or results[5] == 1:
@@ -55,7 +100,18 @@ class DecisionTreeRegressor:
                                     k='a',
                                     i=i + 1)
 
-    def _find_best_split(self, col, y, i):
+    def _find_best_split(self, col, y):
+        """
+        
+        Parameters
+        ----------
+        col
+        y
+
+        Returns
+        -------
+
+        """
         results = [np.inf]
         vals = set(col)
         for val in vals:
