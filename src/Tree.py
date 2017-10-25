@@ -3,7 +3,7 @@ class Tree:
     def __init__(self):
         self.tree = {'root':[]}
 
-    def add_node(self, keys, value, tree=self.tree, i=0):
+    def add_node(self, keys, value, tree, i=1):
         """
 
         Parameters
@@ -22,14 +22,14 @@ class Tree:
         -------
         None
         """
-        if i == len(keys) - 1:
+        if i == len(keys):
             tree[keys[i]] = value
         else:
             self.add_node(keys=keys,
                           tree=tree[keys[i]][-1],
                           i=i + 1)
 
-    def lookup_value(self, keys, tree=self.tree, i=0):
+    def lookup_value(self, keys, tree, i=1):
         """
 
         Parameters
@@ -46,7 +46,7 @@ class Tree:
         -------
         value for deepest branch of tree provided by keys
         """
-        if i == len(keys) - 1:
+        if i == len(keys):
             return tree[keys[i]]
         else:
             return self.lookup_value(keys=keys,
