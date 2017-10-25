@@ -1,7 +1,7 @@
 # TODO min leaf size? Fix Index error if too deep.
 import numpy as np
 import pandas as pd
-from scoring import R2
+from scoring import R2, RSS
 from Tree import Tree
 
 
@@ -33,13 +33,14 @@ class DecisionTreeRegressor:
             return X
 
     def _find_best_feature(self, data, data_cols, tree, k='root', i=1):
-        results = [-np.inf]
+        results = [np.inf]
         for col in data_cols:
             temp_results = self._find_best_split(col=data[col].values,
-                                                 y=data['y'].values)
-            if temp_results[-1] > results[-1]:
+                                                 y=data['y'].values,
+                                                 i=i)
+            if temp_results[-1] < results[-1]:
                 results = [col] + temp_results  # concat the lists together
-        if i == self.max_depth:
+        if i == self.max_depth or results[4] == 1 or results[5] == 1:
             tree[k] = [results[0], results[3], {'b': results[1], 'a': results[2]}]
         else:
             tree[k] = [results[0], results[3], {}]
@@ -54,21 +55,21 @@ class DecisionTreeRegressor:
                                     k='a',
                                     i=i + 1)
 
-    def _find_best_split(self, col, y):
-        results = [-np.inf]
+    def _find_best_split(self, col, y, i):
+        results = [np.inf]
         vals = set(col)
         for val in vals:
             mask_b = col <= val
             mean_b = np.mean(y[mask_b])
             mean_a = np.mean(y[col > val])
-            if np.isnan(mean_b) or np.isnan(mean_a):
+            if sum(mask_b) == 0 or len(y) - sum(mask_b) == 0:
                 continue
             else:
                 y_hat = np.repeat(mean_a, len(y))
                 y_hat[mask_b] = mean_b
-                temp_score = self.score(y, y_hat)
-                if temp_score > results[-1]:
-                    results = [mean_b, mean_a, val, temp_score]
+                temp_score = RSS(y, y_hat)
+                if temp_score < results[-1]:
+                    results = [mean_b, mean_a, val, sum(mask_b), len(y) - sum(mask_b), temp_score]
         return results
 
     def _generate_y_hat(self):
