@@ -32,7 +32,20 @@ class DecisionTreeRegressor:
                                 tree=self.tree.tree)
 
     def predict(self, X):
+        """
+
+        Parameters
+        ----------
+        X
+
+        Returns
+        -------
+
+        """
         X = self._check_x_data_type(X)
+        return X.apply(self._generate_y_hat(row, self.tree.tree['root']))
+
+
 
     def score(self, y, y_hat):
         """
@@ -102,7 +115,7 @@ class DecisionTreeRegressor:
 
     def _find_best_split(self, col, y):
         """
-        
+
         Parameters
         ----------
         col
@@ -128,5 +141,5 @@ class DecisionTreeRegressor:
                     results = [mean_b, mean_a, val, sum(mask_b), len(y) - sum(mask_b), temp_score]
         return results
 
-    def _generate_y_hat(self):
-        pass
+    def _generate_y_hat(self, row, tree):
+        # TODO add recursive search logic
