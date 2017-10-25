@@ -43,7 +43,7 @@ class DecisionTreeRegressor:
 
         """
         X = self._check_x_data_type(X)
-        return X.apply(self._generate_y_hat(row, self.tree.tree['root']))
+        return X.apply(self._generate_y_hat)
 
 
 
@@ -141,5 +141,28 @@ class DecisionTreeRegressor:
                     results = [mean_b, mean_a, val, sum(mask_b), len(y) - sum(mask_b), temp_score]
         return results
 
-    def _generate_y_hat(self, row, tree):
-        # TODO add recursive search logic
+    def _generate_y_hat(self, row, tree=self.tree.tree['root']):
+        """
+
+        Parameters
+        ----------
+        row
+        tree
+
+        Returns
+        -------
+
+        """
+        if row[tree[0]] <= tree[1]:
+            if isinstance(tree[-1]['b'], list):
+                return self._generate_y_hat(row=row,
+                                            tree=tree[-1]['b'])
+            else:
+                return tree[-1]['b']
+        else:
+            if isinstance(tree[-1]['a'], list):
+                return self._generate_y_hat(row=row,
+                                            tree=tree[-1]['a'])
+            else:
+                return tree[-1]['a']
+        
