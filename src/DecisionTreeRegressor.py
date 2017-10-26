@@ -109,19 +109,25 @@ class DecisionTreeRegressor:
         return y
 
     def _find_best_feature(self, X, y, tree, k='root', i=1):
-        """
+        """ Iterates across all features to find the one allowing the best split
+        and updates the tree accordingly
 
         Parameters
         ----------
-        X
-        y
-        tree
-        k
-        i
+        X : pandas DataFrame or numpy array
+            training data for the model
+        y : pandas Series or numpy array
+            dependent variable training data for the model
+        tree : decision tree object (nested dicts and lists)
+            current layer of the decision tree
+        k : str
+            key for the current layer of the decision tree
+        i : int
+            iterator used to terminate regression at max_depth
 
         Returns
         -------
-
+        None
         """
         results = [np.inf]
         for col in X.columns:
@@ -145,16 +151,23 @@ class DecisionTreeRegressor:
                                     i=i + 1)
 
     def _find_best_split(self, col_data, y):
-        """
+        """ Iterates across all values of a features to find the best split
 
         Parameters
         ----------
-        col_data
-        y
+        col_data : numpy array
+            independent variable training data for the the given feature
+        y : numpy array
+            dependent variable training data
 
         Returns
         -------
-
+        list
+            [0] = y_hat below or equal to the split
+            [1] = y_hat above the split
+            [2] = split value
+            [3] = count of values below or equal to the split
+            [4] = count of values above the split
         """
         results = [np.inf]
         vals = set(col_data)
@@ -173,15 +186,20 @@ class DecisionTreeRegressor:
         return results
 
     def _generate_y_hat(self, row, tree=None):
-        """
+        """ Estimates y_hat for each row of the test data by recursively querying
+        the decision tree
 
         Parameters
         ----------
-        tree
+        row : pandas Series
+            row of test dataset
+        tree : decision tree object (nested dicts and lists)
+            current layer of the decision tree
 
         Returns
         -------
-
+        float
+            y_hat for the given row of the dataset
         """
         if tree is None:
             tree = self.tree.tree['root']
