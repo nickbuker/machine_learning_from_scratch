@@ -7,17 +7,20 @@ from Tree import Tree
 class DecisionTreeRegressor:
 
     def __init__(self):
+        """
+        Decision tree regression implemented in Python using numpy and pandas
+        """
         pass
 
     def fit(self, X, y, max_depth):
-        """ Trains model and generates decision tree
+        """ Takes in training data and generates the decision tree
 
         Parameters
         ----------
         X : pandas DataFrame or numpy array
             training data for the model
         y : pandas Series or numpy array
-            training data for the model
+            dependent variable training data for the model
         max_depth : int
             max depth at which the tree will be terminated
 
@@ -34,60 +37,72 @@ class DecisionTreeRegressor:
                                 tree=self.tree.tree)
 
     def predict(self, X):
-        """
+        """ Estimates y for the test data
 
         Parameters
         ----------
-        X
+        X : pandas DataFrame or numpy array
+            test data for the model
 
         Returns
         -------
-
+        numpy array
+            estimated y values for the test data
         """
         X = self._check_data_type_X(X)
         return X.apply(self._generate_y_hat, axis=1)
 
 
 
-    def score(self, y, y_hat):
-        """
+    def score(self, X, y):
+        """ Calculates model R squared for the test data
 
         Parameters
         ----------
-        y
-        y_hat
+        X : pandas DataFrame or numpy array
+            test data for the model
+        y : pandas Series or numpy array
+            dependent variable test data for the model
 
         Returns
         -------
-
+        float
+            R squared value
         """
+        X = self._check_data_type_X(X)
+        y = self._check_data_type_y(y)
+        y_hat = self.predict(X)
         return R2(y, y_hat)
 
     def _check_data_type_X(self, X):
-        """
+        """ Checks if X is a pandas DataFrame and if not, converts it to one
 
         Parameters
         ----------
-        X
+        X : pandas DataFrame or numpy array
+            data
 
         Returns
         -------
-
+        pandas DataFrame
+            data of appropriate type
         """
         if not isinstance(X, pd.core.frame.DataFrame):
             X = pd.DataFrame(X)
         return X
 
     def _check_data_type_y(self, y):
-        """
+        """ Checks if y is a pandas Series and if not, converts it to one
 
         Parameters
         ----------
-        y
+        y : pandas Series or numpy array
+            data
 
         Returns
         -------
-
+        pandas Series
+            data of appropriate type
         """
         if not isinstance(y, pd.core.series.Series):
             y = pd.Series(y)
