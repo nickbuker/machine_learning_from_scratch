@@ -1,3 +1,5 @@
+# TODO data type checker for y
+
 import numpy as np
 import pandas as pd
 from scoring import R2, RSS
@@ -24,11 +26,10 @@ class DecisionTreeRegressor:
         """
         self.tree = Tree()
         self.max_depth = max_depth
-        data = self._check_x_data_type(X)
-        data.loc[:, 'y'] = y
-        data_cols = [col for col in data.columns if col != 'y']
-        self._find_best_feature(data=data,
-                                data_cols=data_cols,
+        X = self._check_data_type_X(X)
+        y = self._check_data_type_y(y)
+        self._find_best_feature(X=X,
+                                y=y,
                                 tree=self.tree.tree)
 
     def predict(self, X):
@@ -42,8 +43,8 @@ class DecisionTreeRegressor:
         -------
 
         """
-        X = self._check_x_data_type(X)
-        return X.apply(self._generate_y_hat)
+        X = self._check_data_type_X(X)
+        return X.apply(self._generate_y_hat, axis=1)
 
 
 
@@ -61,7 +62,7 @@ class DecisionTreeRegressor:
         """
         return R2(y, y_hat)
 
-    def _check_x_data_type(self, X):
+    def _check_data_type_X(self, X):
         """
 
         Parameters
@@ -73,17 +74,31 @@ class DecisionTreeRegressor:
 
         """
         if not isinstance(X, pd.core.frame.DataFrame):
-            return pd.DataFrame(X)
-        else:
-            return X
+            X = pd.DataFrame(X)
+        return X
 
-    def _find_best_feature(self, data, data_cols, tree, k='root', i=1):
+    def _check_data_type_y(self, y):
         """
 
         Parameters
         ----------
-        data
-        data_cols
+        y
+
+        Returns
+        -------
+
+        """
+        if not isinstance(y, pd.core.series.Series):
+            y = pd.Series(y)
+        return y
+
+    def _find_best_feature(self, X, y, tree, k='root', i=1):
+        """
+
+        Parameters
+        ----------
+        X
+        y
         tree
         k
         i
@@ -93,32 +108,32 @@ class DecisionTreeRegressor:
 
         """
         results = [np.inf]
-        for col in data_cols:
-            temp_results = self._find_best_split(col=data[col].values,
-                                                 y=data['y'].values)
+        for col in X.columns:
+            temp_results = self._find_best_split(col_data=X[col].values,
+                                                 y=y.values)
             if temp_results[-1] < results[-1]:
                 results = [col] + temp_results  # concat the lists together
         if i == self.max_depth or results[4] == 1 or results[5] == 1:
             tree[k] = [results[0], results[3], {'b': results[1], 'a': results[2]}]
         else:
             tree[k] = [results[0], results[3], {}]
-            self._find_best_feature(data=data[data[results[0]] <= results[3]],
-                                    data_cols=data_cols,
+            self._find_best_feature(X=X[X[results[0]] <= results[3]],
+                                    y=y[X[results[0]] <= results[3]],
                                     tree=tree[k][-1],
                                     k='b',
                                     i=i + 1)
-            self._find_best_feature(data=data[data[results[0]] > results[3]],
-                                    data_cols=data_cols,
+            self._find_best_feature(X=X[X[results[0]] > results[3]],
+                                    y=y[X[results[0]] > results[3]],
                                     tree=tree[k][-1],
                                     k='a',
                                     i=i + 1)
 
-    def _find_best_split(self, col, y):
+    def _find_best_split(self, col_data, y):
         """
 
         Parameters
         ----------
-        col
+        col_data
         y
 
         Returns
@@ -126,11 +141,11 @@ class DecisionTreeRegressor:
 
         """
         results = [np.inf]
-        vals = set(col)
+        vals = set(col_data)
         for val in vals:
-            mask_b = col <= val
+            mask_b = col_data <= val
             mean_b = np.mean(y[mask_b])
-            mean_a = np.mean(y[col > val])
+            mean_a = np.mean(y[col_data > val])
             if sum(mask_b) == 0 or len(y) - sum(mask_b) == 0:
                 continue
             else:
@@ -141,18 +156,19 @@ class DecisionTreeRegressor:
                     results = [mean_b, mean_a, val, sum(mask_b), len(y) - sum(mask_b), temp_score]
         return results
 
-    def _generate_y_hat(self, row, tree=self.tree.tree['root']):
+    def _generate_y_hat(self, row, tree=None):
         """
 
         Parameters
         ----------
-        row
         tree
 
         Returns
         -------
 
         """
+        if tree is None:
+            tree = self.tree.tree['root']
         if row[tree[0]] <= tree[1]:
             if isinstance(tree[-1]['b'], list):
                 return self._generate_y_hat(row=row,
