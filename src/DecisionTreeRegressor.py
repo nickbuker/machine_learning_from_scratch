@@ -1,5 +1,3 @@
-# TODO data type checker for y
-
 import numpy as np
 import pandas as pd
 from scoring import R2, RSS
@@ -12,17 +10,20 @@ class DecisionTreeRegressor:
         pass
 
     def fit(self, X, y, max_depth):
-        """
+        """ Trains model and generates decision tree
 
         Parameters
         ----------
-        X
-        y
-        max_depth
+        X : pandas DataFrame or numpy array
+            training data for the model
+        y : pandas Series or numpy array
+            training data for the model
+        max_depth : int
+            max depth at which the tree will be terminated
 
         Returns
         -------
-
+        None
         """
         self.tree = Tree()
         self.max_depth = max_depth
