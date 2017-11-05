@@ -1,5 +1,4 @@
 import numpy as np
-# from sklearn.? import bootstrap
 from scoring import R2, RSS
 from DecisionTreeRegressor import DecisionTreeRegressor
 
@@ -7,27 +6,89 @@ from DecisionTreeRegressor import DecisionTreeRegressor
 class RandomForestRegressor:
 
     def __init__(self):
+        """
+
+        """
         pass
 
     def fit(self, X, y, max_depth, n_estimators):
+        """
+
+        Parameters
+        ----------
+        X
+        y
+        max_depth
+        n_estimators
+
+        Returns
+        -------
+
+        """
         # instantiate forest of decision trees
         self.trees = [DecisionTreeRegressor() for _ in range(n_estimators)]
         # create masks for rows and columns of data for each tree
-        self.rows = [self._sample_rows(X.index) for _ in range(n_estimators)]
+        rows = [self._sample_rows(X.index) for _ in range(n_estimators)]
         n_cols = int(len(X.columns) ** 0.5)
-        self.cols = [self._sample_cols(X.columns, n_cols) for _ in range(n_estimators)]
+        cols = [self._sample_cols(X.columns, n_cols) for _ in range(n_estimators)]
         for i, tree in enumerate(self.trees):
-            tree.fit(X[self.rows[i]][self.cols[i]], y[self.rows[i]])
+            tree.fit(X[cols[i]].iloc[rows[i]], y[rows[i]])
 
     def predict(self, X):
-        pass
+        """
+
+        Parameters
+        ----------
+        X
+
+        Returns
+        -------
+
+        """
+        preds = []
+        for tree in self.trees:
+            preds.append(tree.predict(X))
+        return np.mean(preds, axis=0)
 
     def score(self, X, y):
-        pass
+        """
+
+        Parameters
+        ----------
+        X
+        y
+
+        Returns
+        -------
+
+        """
+        y_hat = self.predict(X)
+        return R2(y, y_hat)
 
     def _sample_rows(self, index):
-        pass
+        """
+
+        Parameters
+        ----------
+        index
+
+        Returns
+        -------
+
+        """
+        return np.random.randint(0, len(index), len(index))
 
     def _sample_cols(self, cols, n_cols):
-        pass
+        """
+
+        Parameters
+        ----------
+        cols
+        n_cols
+
+        Returns
+        -------
+
+        """
+        return np.random.choice(cols, n_cols)
 
