@@ -52,8 +52,6 @@ class DecisionTreeRegressor:
         X = self._check_data_type_X(X)
         return X.apply(self._generate_y_hat, axis=1)
 
-
-
     def score(self, X, y):
         """ Calculates model R squared for the test data
 
