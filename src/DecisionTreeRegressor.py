@@ -87,7 +87,7 @@ class DecisionTreeRegressor:
         """
         if not isinstance(X, pd.core.frame.DataFrame):
             X = pd.DataFrame(X)
-        return X
+        return X.reset_index(drop=True, inplace=False)
 
     def _check_data_type_y(self, y):
         """ Checks if y is a pandas Series and if not, converts it to one
@@ -104,7 +104,7 @@ class DecisionTreeRegressor:
         """
         if not isinstance(y, pd.core.series.Series):
             y = pd.Series(y)
-        return y
+        return y.reset_index(drop=True, inplace=False)
 
     def _find_best_feature(self, X, y, tree, k='root', i=1):
         """ Iterates across all features to find the one allowing the best split
@@ -129,8 +129,8 @@ class DecisionTreeRegressor:
         """
         results = [np.inf]
         for col in X.columns:
-            temp_results = self._find_best_split(col_data=X[col].values,
-                                                 y=y.values)
+            temp_results = self._find_best_split(col_data=X[col],
+                                                 y=y)
             if temp_results[-1] < results[-1]:
                 results = [col] + temp_results  # concat the lists together
         if i == self.max_depth or results[4] == 1 or results[5] == 1:

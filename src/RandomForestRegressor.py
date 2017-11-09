@@ -35,6 +35,7 @@ class RandomForestRegressor:
         n_cols = int(len(X.columns) ** 0.5)
         cols = [self._sample_cols(X.columns, n_cols) for _ in range(n_estimators)]
         for i, tree in enumerate(self.trees):
+            # TODO fix this line
             tree.fit(X[cols[i]].iloc[rows[i]], y.iloc[rows[i]], max_depth)
 
     def predict(self, X):
