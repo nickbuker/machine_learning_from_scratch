@@ -35,7 +35,7 @@ class RandomForestRegressor:
         n_cols = int(len(X.columns) ** 0.5)
         cols = [self._sample_cols(X.columns, n_cols) for _ in range(n_estimators)]
         for i, tree in enumerate(self.trees):
-            tree.fit(X[cols[i]].iloc[rows[i]], y[rows[i]], max_depth)
+            tree.fit(X[cols[i]].iloc[rows[i]], y.iloc[rows[i]], max_depth)
 
     def predict(self, X):
         """
@@ -84,7 +84,7 @@ class RandomForestRegressor:
         """
         if not isinstance(X, pd.core.frame.DataFrame):
             X = pd.DataFrame(X)
-        return X
+        return X.reset_index(drop=True, inplace=False)
 
     def _check_data_type_y(self, y):
         """ Checks if y is a pandas Series and if not, converts it to one
@@ -99,7 +99,7 @@ class RandomForestRegressor:
         """
         if not isinstance(y, pd.core.series.Series):
             y = pd.Series(y)
-        return y
+        return y.reset_index(drop=True, inplace=False)
 
     def _sample_rows(self, index):
         """
@@ -112,7 +112,7 @@ class RandomForestRegressor:
         -------
 
         """
-        return np.random.randint(0, len(index), len(index))
+        return np.random.randint(0, len(index) -1 , len(index))
 
     def _sample_cols(self, cols, n_cols):
         """
