@@ -1,6 +1,6 @@
 class Node:
     def __init__(self, data, is_leaf=False):
-        """
+        """ Node class for implementation of machine learning tree models
 
         Parameters
         ----------
@@ -15,7 +15,7 @@ class Node:
         self.children = {}
 
     def add_child(self, key, data, is_leaf):
-        """
+        """ Adds child Node to self.children
 
         Parameters
         ----------
@@ -34,8 +34,8 @@ class Node:
         self.children[key] = Node(data, is_leaf)
 
     def get_leaf(self, row):
-        """ If node is leaf, return self.data (y_hat), else query get_leaf for
-        the appropriate child node to recursively find y_hat
+        """ If node is leaf, returns self.data (y_hat), else query get_leaf for
+        the appropriate child node and recursively find y_hat
 
         Parameters
         ----------
