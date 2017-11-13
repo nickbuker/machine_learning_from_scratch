@@ -1,5 +1,5 @@
 class Node:
-    def __init__(self, data, is_leaf=False):
+    def __init__(self, data=None, is_leaf=False):
         """ Node class for implementation of machine learning tree models
 
         Parameters
