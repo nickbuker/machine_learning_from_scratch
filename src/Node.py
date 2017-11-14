@@ -1,29 +1,28 @@
 class Node:
-    def __init__(self, data=None, is_leaf=False):
+    def __init__(self, depth=1, is_leaf=False):
         """ Node class for implementation of machine learning tree models
 
         Parameters
         ----------
-        data : tuple or float
-            if not is_leaf then tuple (split_col, split_val)
-            if is_leaf then float value of y_hat
+        depth : int
+            layer of the tree from 1 to n
         is_leaf : bool
             whether or not this node is a terminal leaf
         """
-        self.data = data
+        self.data = None
+        self.depth = depth
         self.is_leaf = is_leaf
         self.children = {}
 
-    def add_child(self, key, data, is_leaf):
+    def add_child(self, key, depth, is_leaf):
         """ Adds child Node to self.children
 
         Parameters
         ----------
         key : any immutable
             name of child node
-        data : tuple or float
-            if not is_leaf then tuple (split_col, split_val)
-            if is_leaf then float value of y_hat
+        depth : int
+            layer of the tree from 1 to n
         is_leaf : bool
             whether or not this node is a terminal leaf
 
@@ -31,7 +30,7 @@ class Node:
         -------
         None
         """
-        self.children[key] = Node(data, is_leaf)
+        self.children[key] = Node(depth, is_leaf)
 
     def get_leaf(self, row):
         """ If node is leaf, returns self.data (y_hat), else query get_leaf for
