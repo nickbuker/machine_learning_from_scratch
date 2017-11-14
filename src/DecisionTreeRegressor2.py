@@ -6,11 +6,10 @@ class DecisionTreeRegressor:
     def __init__(self):
         self.tree = Node()
 
-    @_take_parameters
     def fit(self, X, y, max_depth):
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
-        # TODO continue implementation
+        self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
 
     def predict(self, X):
         X =  self._make_numpy(data=X)
@@ -22,16 +21,31 @@ class DecisionTreeRegressor:
         y_hat = self.predict(X)
         return R2(y, y_hat)
 
-    def _take_parameters(self, X, y, max_depth):
-        def wrap(fn):
-            kwargs = {'X': X, 'y': y, 'max_depth': max_depth}
-            return fn(**kwargs)
-        return wrap
-
     def _make_numpy(self, data):
         if not isinstance(data, np.ndarray):
             np.array(data)
         return data
+
+    def _build_tree(self, X, y, max_depth, tree):
+        col, split, b_mean, a_mean = self._find_best_col(X, y)
+        mask = X[:, col] <= split
+        tree.data = (col, split)
+        is_leaf = tree.depth + 1 == max_depth
+        tree.add_child(key='b', depth=tree.depth + 1, is_leaf=is_leaf)
+        tree.add_child(key='a', depth=tree.depth + 1, is_leaf=is_leaf)
+        if is_leaf:
+            tree.children['b'].data = b_mean
+            tree.children['a'].data = a_mean
+        else:
+            self._build_tree(X=X[mask],
+                             y=y[mask],
+                             max_depth=max_depth,
+                             tree=tree.children['b'])
+            self._build_tree(X=X[np.invert(mask)],
+                             y=y[np.invert(mask)],
+                             max_depth=max_depth,
+                             tree=tree.children['a'])
+    # TODO continue implementation (min leaf size)
 
     def _find_best_col(self, X, y):
         error = np.inf
