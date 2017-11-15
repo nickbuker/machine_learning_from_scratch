@@ -67,15 +67,17 @@ class DecisionTreeRegressor:
         return R2(y, y_hat)
 
     def _make_numpy(self, data):
-        """
+        """ Converts input data to numpy array if not isinstance() numpy ndarray
 
         Parameters
         ----------
-        data
+        data : structure capable of being converted to numpy array
+            input data
 
         Returns
         -------
-
+        numpy array
+            data of the appropriate type
         """
         if not isinstance(data, np.ndarray):
             np.array(data)
@@ -92,7 +94,7 @@ class DecisionTreeRegressor:
             training data dependent variable
         max_depth : int
             max depth permitted or tree
-        tree : dict
+        tree : Node class
             layer of decision tree
 
         Returns
