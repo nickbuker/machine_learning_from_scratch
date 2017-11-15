@@ -104,22 +104,26 @@ class DecisionTreeRegressor:
         col, split, b_mean, a_mean = self._find_best_col(X, y)
         mask = X[:, col] <= split
         tree.data = (col, split)
-        is_leaf = tree.depth + 1 == max_depth
-        tree.add_child(key='b', depth=tree.depth + 1, is_leaf=is_leaf)
-        tree.add_child(key='a', depth=tree.depth + 1, is_leaf=is_leaf)
-        if is_leaf:
+        # Node will be leaf if max_depth reached or contains 3 or less observations
+        b_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
+        a_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
+        tree.add_child(key='b', depth=tree.depth + 1, is_leaf=b_leaf)
+        tree.add_child(key='a', depth=tree.depth + 1, is_leaf=a_leaf)
+        # terminate tree with mean or continue to build tree recursively
+        if b_leaf:
             tree.children['b'].data = b_mean
-            tree.children['a'].data = a_mean
         else:
             self._build_tree(X=X[mask],
                              y=y[mask],
                              max_depth=max_depth,
                              tree=tree.children['b'])
+        if a_leaf:
+            tree.children['a'].data = a_mean
+        else:
             self._build_tree(X=X[np.invert(mask)],
                              y=y[np.invert(mask)],
                              max_depth=max_depth,
                              tree=tree.children['a'])
-    # TODO continue implementation (min leaf size)
 
     def _find_best_col(self, X, y):
         """ Iterates through the columns to find the one generating the split producing least error
