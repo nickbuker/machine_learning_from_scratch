@@ -4,50 +4,62 @@ from scoring import R2, RSS
 
 class DecisionTreeRegressor:
     def __init__(self):
-        self.tree = Node()
+        """
+        Decision tree regression implemented in Python using numpy
+        """
+        pass
 
     def fit(self, X, y, max_depth):
-        """
+        """ Takes in training data and generates the decision tree
 
         Parameters
         ----------
-        X
-        y
-        max_depth
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
+        max_depth : int
+            max depth permitted for tree
 
         Returns
         -------
-
+        None
         """
+        self.tree = Node()
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
         self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
 
     def predict(self, X):
-        """
+        """ Estimates y for the test data
 
         Parameters
         ----------
-        X
+        X : numpy array
+            test data independent variable(s)
 
         Returns
         -------
-
+        numpy array
+            y_hat values for test data
         """
         X =  self._make_numpy(data=X)
         return np.apply_along_axis(func1d=self._query_tree, axis=1, arr=X)
 
     def score(self, X, y):
-        """
+        """ Calculates model R squared for the test data
 
         Parameters
         ----------
-        X
-        y
+        X : numpy array
+            test data independent variable(s)
+        y : numpy array
+            test data dependent variable
 
         Returns
         -------
-
+        float
+            R squared value
         """
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
