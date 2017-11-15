@@ -82,18 +82,22 @@ class DecisionTreeRegressor:
         return data
 
     def _build_tree(self, X, y, max_depth, tree):
-        """
+        """ Takes in training data and recursively builds the decision tree
 
         Parameters
         ----------
-        X
-        y
-        max_depth
-        tree
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
+        max_depth : int
+            max depth permitted or tree
+        tree : dict
+            layer of decision tree
 
         Returns
         -------
-
+        None
         """
         col, split, b_mean, a_mean = self._find_best_col(X, y)
         mask = X[:, col] <= split
@@ -116,17 +120,26 @@ class DecisionTreeRegressor:
     # TODO continue implementation (min leaf size)
 
     def _find_best_col(self, X, y):
-        """ Iterates through the columns to find the one generating the split producing
-        least error
+        """ Iterates through the columns to find the one generating the split producing least error
 
         Parameters
         ----------
-        X
-        y
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
 
         Returns
         -------
-
+        tuple
+            col : int
+                index of column giving best split
+            split : float or int
+                value giving best split
+            b_mean : float
+                mean of y below or equal to the split value
+            a_mean : float
+                mean of y above the split value
         """
         error = np.inf
         col = 0
@@ -144,17 +157,26 @@ class DecisionTreeRegressor:
         return col, split, b_mean, a_mean
 
     def _find_best_split(self, col_values, y):
-        """ Iterates through the unique values of the column to find the split producing
-        least error
+        """ Iterates through the unique values of the column to find the split producing least error
 
         Parameters
         ----------
-        col_values
-        y
+        col_values : numpy array
+            column of dependent variable training data
+        y : numpy array
+            training data dependent variable
 
         Returns
         -------
-
+        tuple
+            error : float
+                sum of squared error
+            split : float or int
+                value giving best split
+            b_mean : float
+                mean of y below or equal to the split value
+            a_mean : float
+                mean of y above the split value
         """
         error = np.inf
         split = 0
