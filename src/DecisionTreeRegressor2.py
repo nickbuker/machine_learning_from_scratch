@@ -7,26 +7,82 @@ class DecisionTreeRegressor:
         self.tree = Node()
 
     def fit(self, X, y, max_depth):
+        """
+
+        Parameters
+        ----------
+        X
+        y
+        max_depth
+
+        Returns
+        -------
+
+        """
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
         self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
 
     def predict(self, X):
+        """
+
+        Parameters
+        ----------
+        X
+
+        Returns
+        -------
+
+        """
         X =  self._make_numpy(data=X)
         return np.apply_along_axis(func1d=self._query_tree, axis=1, arr=X)
 
     def score(self, X, y):
+        """
+
+        Parameters
+        ----------
+        X
+        y
+
+        Returns
+        -------
+
+        """
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
         y_hat = self.predict(X)
         return R2(y, y_hat)
 
     def _make_numpy(self, data):
+        """
+
+        Parameters
+        ----------
+        data
+
+        Returns
+        -------
+
+        """
         if not isinstance(data, np.ndarray):
             np.array(data)
         return data
 
     def _build_tree(self, X, y, max_depth, tree):
+        """
+
+        Parameters
+        ----------
+        X
+        y
+        max_depth
+        tree
+
+        Returns
+        -------
+
+        """
         col, split, b_mean, a_mean = self._find_best_col(X, y)
         mask = X[:, col] <= split
         tree.data = (col, split)
@@ -48,6 +104,18 @@ class DecisionTreeRegressor:
     # TODO continue implementation (min leaf size)
 
     def _find_best_col(self, X, y):
+        """ Iterates through the columns to find the one generating the split producing
+        least error
+
+        Parameters
+        ----------
+        X
+        y
+
+        Returns
+        -------
+
+        """
         error = np.inf
         col = 0
         split = 0
@@ -64,6 +132,18 @@ class DecisionTreeRegressor:
         return col, split, b_mean, a_mean
 
     def _find_best_split(self, col_values, y):
+        """ Iterates through the unique values of the column to find the split producing
+        least error
+
+        Parameters
+        ----------
+        col_values
+        y
+
+        Returns
+        -------
+
+        """
         error = np.inf
         split = 0
         b_mean = 0
@@ -82,4 +162,16 @@ class DecisionTreeRegressor:
         return error, split, b_mean, a_mean
 
     def _query_tree(self, row):
+        """ Takes in row of data and queries tree to find y_hat
+
+        Parameters
+        ----------
+        row : numpy array
+            row of data from X
+
+        Returns
+        -------
+        float
+            y_hat for particular row
+        """
         return self.tree.get_leaf(row=row)
