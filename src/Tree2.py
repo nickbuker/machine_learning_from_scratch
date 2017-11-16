@@ -19,15 +19,3 @@ class Node:
         self.data = data
         self.depth = depth
         self.is_leaf = is_leaf
-
-
-class Tree:
-
-    def __init__(self):
-        self.tree = Node()
-
-    def add_node(self):
-        pass
-
-    def query_tree(self):
-        pass
