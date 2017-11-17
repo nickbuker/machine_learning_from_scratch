@@ -1,5 +1,5 @@
 import numpy as np
-from Node import Node
+from Tree2 import Node
 from scoring import R2, RSS
 
 class DecisionTreeRegressor:
@@ -44,7 +44,7 @@ class DecisionTreeRegressor:
             y_hat values for test data
         """
         X =  self._make_numpy(data=X)
-        return np.apply_along_axis(func1d=self._query_tree, axis=1, arr=X)
+        return np.apply_along_axis(func1d=self.tree.query, axis=1, arr=X)
 
     def score(self, X, y):
         """ Calculates model R squared for the test data
@@ -101,6 +101,7 @@ class DecisionTreeRegressor:
         -------
         None
         """
+        # TODO refactor this to for new tree
         col, split, b_mean, a_mean = self._find_best_col(X, y)
         mask = X[:, col] <= split
         tree.data = (col, split)
@@ -200,18 +201,3 @@ class DecisionTreeRegressor:
                 b_mean = temp_b_mean
                 a_mean = temp_a_mean
         return error, split, b_mean, a_mean
-
-    def _query_tree(self, row):
-        """ Takes in row of data and queries tree to find y_hat
-
-        Parameters
-        ----------
-        row : numpy array
-            row of data from X
-
-        Returns
-        -------
-        float
-            y_hat for particular row
-        """
-        return self.tree.get_leaf(row=row)
