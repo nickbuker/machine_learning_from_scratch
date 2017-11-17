@@ -19,3 +19,24 @@ class Node:
         self.data = data
         self.depth = depth
         self.is_leaf = is_leaf
+
+    def query(self, row):
+        """ Recursively queries nodes to find y_hat for a row of data
+
+        Parameters
+        ----------
+        row : numpy array
+            row of independent variable data
+
+        Returns
+        -------
+        float
+            y_hat for the row of data
+        """
+        if self.is_leaf:
+            return self.data
+        else:
+            if row[self.data[0]] > self.data[1]:
+                return self.a.query(row)
+            else:
+                return self.b.query(row)
