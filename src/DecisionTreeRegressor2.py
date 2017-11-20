@@ -101,30 +101,30 @@ class DecisionTreeRegressor:
         -------
         None
         """
-        # TODO refactor this to for new tree
-        col, split, b_mean, a_mean = self._find_best_col(X, y)
-        mask = X[:, col] <= split
+        # TODO fix warnings
+        col, split, a_mean, b_mean = self._find_best_col(X, y)
+        mask = X[:, col] > split
         tree.data = (col, split)
         # Node will be leaf if max_depth reached or contains 3 or less observations
-        b_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
-        a_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
-        tree.add_child(key='b', depth=tree.depth + 1, is_leaf=b_leaf)
-        tree.add_child(key='a', depth=tree.depth + 1, is_leaf=a_leaf)
+        a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
+        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
+        tree.a = Node(depth=tree.depth + 1, is_leaf=a_leaf)
+        tree.b = Node(depth=tree.depth + 1, is_leaf=b_leaf)
         # terminate tree with mean or continue to build tree recursively
-        if b_leaf:
-            tree.children['b'].data = b_mean
+        if a_leaf:
+            tree.a.data = a_mean
         else:
             self._build_tree(X=X[mask],
                              y=y[mask],
                              max_depth=max_depth,
-                             tree=tree.children['b'])
-        if a_leaf:
-            tree.children['a'].data = a_mean
+                             tree=tree.a)
+        if b_leaf:
+            tree.b.data = b_mean
         else:
             self._build_tree(X=X[np.invert(mask)],
                              y=y[np.invert(mask)],
                              max_depth=max_depth,
-                             tree=tree.children['a'])
+                             tree=tree.b)
 
     def _find_best_col(self, X, y):
         """ Iterates through the columns to find the one generating the split producing least error
@@ -151,24 +151,24 @@ class DecisionTreeRegressor:
         error = np.inf
         col = 0
         split = 0
-        b_mean = 0
         a_mean = 0
+        b_mean = 0
         for i in range(0, X.shape[1]):
-            temp_error, temp_split, temp_b_mean, temp_a_mean = self._find_best_split(X[:, i], y)
+            temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y)
             if temp_error < error:
                 error = temp_error
                 col = i
                 split = temp_split
-                b_mean = temp_b_mean
                 a_mean = temp_a_mean
-        return col, split, b_mean, a_mean
+                b_mean = temp_b_mean
+        return col, split, a_mean, b_mean
 
-    def _find_best_split(self, col_values, y):
+    def _find_best_split(self, values, y):
         """ Iterates through the unique values of the column to find the split producing least error
 
         Parameters
         ----------
-        col_values : numpy array
+        values : numpy array
             column of dependent variable training data
         y : numpy array
             training data dependent variable
@@ -187,17 +187,18 @@ class DecisionTreeRegressor:
         """
         error = np.inf
         split = 0
-        b_mean = 0
         a_mean = 0
-        for n in np.unique(col_values):
-            mask = col_values <= n
-            temp_b_mean = np.mean(y[mask])
-            temp_a_mean = np.mean(y[np.invert(mask)])
-            y_hat = np.array(sum(mask) * [temp_b_mean] + sum(np.invert(mask)) * [temp_a_mean])
+        b_mean = 0
+        for n in np.unique(values):
+            mask = values > n
+            temp_a_mean = np.mean(y[mask])
+            temp_b_mean = np.mean(y[np.invert(mask)])
+            y_hat = np.repeat(a_mean, len(y))
+            y_hat[np.invert(mask)] = b_mean
             temp_error = RSS(y, y_hat)
             if temp_error < error:
                 error = temp_error
                 split = n
-                b_mean = temp_b_mean
                 a_mean = temp_a_mean
-        return error, split, b_mean, a_mean
+                b_mean = temp_b_mean
+        return error, split, a_mean, b_mean
