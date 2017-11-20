@@ -191,6 +191,8 @@ class DecisionTreeRegressor:
         b_mean = 0
         for n in np.unique(values):
             mask = values > n
+            if sum(mask) == 0:
+                continue
             temp_a_mean = np.mean(y[mask])
             temp_b_mean = np.mean(y[np.invert(mask)])
             y_hat = np.repeat(a_mean, len(y))
