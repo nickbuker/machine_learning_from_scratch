@@ -2,5 +2,4 @@ pycharm_src/
 .idea/
 __pycache__/
 *.pyc
-*.ipynb
 .ipynb_checkpoints/
