@@ -1,14 +1,12 @@
 import numpy as np
-import pandas as pd
+from Tree import Node
 from scoring import R2, RSS
-from Tree import Tree
 
 
 class DecisionTreeRegressor:
-
     def __init__(self):
         """
-        Decision tree regression implemented in Python using numpy and pandas
+        Decision tree regression implemented in Python using numpy
         """
         pass
 
@@ -17,199 +15,205 @@ class DecisionTreeRegressor:
 
         Parameters
         ----------
-        X : pandas DataFrame or numpy array
-            training data for the model
-        y : pandas Series or numpy array
-            dependent variable training data for the model
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
         max_depth : int
-            max depth at which the tree will be terminated
+            max depth permitted for tree
 
         Returns
         -------
         None
         """
-        self.tree = Tree()
-        self.max_depth = max_depth
-        X = self._check_data_type_X(X)
-        y = self._check_data_type_y(y)
-        self._find_best_feature(X=X,
-                                y=y,
-                                tree=self.tree.tree)
+        self.tree = Node()
+        # ensure data is in numpy arrays
+        X = self._make_array(data=X)
+        y = self._make_array(data=y)
+        self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
 
     def predict(self, X):
         """ Estimates y for the test data
 
         Parameters
         ----------
-        X : pandas DataFrame or numpy array
-            test data for the model
+        X : numpy array
+            test data independent variable(s)
 
         Returns
         -------
         numpy array
-            estimated y values for the test data
+            y_hat values for test data
         """
-        X = self._check_data_type_X(X)
-        return X.apply(self._generate_y_hat, axis=1)
+        # ensure data is in numpy arrays
+        X = self._make_array(data=X)
+        # map tree query method across data
+        return np.apply_along_axis(func1d=self.tree.query, axis=1, arr=X)
 
     def score(self, X, y):
         """ Calculates model R squared for the test data
 
         Parameters
         ----------
-        X : pandas DataFrame or numpy array
-            test data for the model
-        y : pandas Series or numpy array
-            dependent variable test data for the model
+        X : numpy array
+            test data independent variable(s)
+        y : numpy array
+            test data dependent variable
 
         Returns
         -------
         float
-            R squared value
+            R-squared value
         """
-        X = self._check_data_type_X(X)
-        y = self._check_data_type_y(y)
+        # ensure data is in numpy arrays
+        X = self._make_array(data=X)
+        y = self._make_array(data=y)
         y_hat = self.predict(X)
+        # calculate R-squared value
         return R2(y, y_hat)
 
-    def _check_data_type_X(self, X):
-        """ Checks if X is a pandas DataFrame and if not, converts it to one
+    def _make_array(self, data):
+        """ Converts input data to numpy array if not isinstance() numpy ndarray
 
         Parameters
         ----------
-        X : pandas DataFrame or numpy array
-            data
+        data : structure capable of being converted to numpy array
+            input data
 
         Returns
         -------
-        pandas DataFrame
-            data of appropriate type
+        numpy array
+            data of the appropriate type
         """
-        if not isinstance(X, pd.core.frame.DataFrame):
-            X = pd.DataFrame(X)
-        return X.reset_index(drop=True, inplace=False)
+        if not isinstance(data, np.ndarray):
+            np.array(data)
+        return data
 
-    def _check_data_type_y(self, y):
-        """ Checks if y is a pandas Series and if not, converts it to one
+    def _build_tree(self, X, y, max_depth, tree):
+        """ Takes in training data and recursively builds the decision tree
 
         Parameters
         ----------
-        y : pandas Series or numpy array
-            data
-
-        Returns
-        -------
-        pandas Series
-            data of appropriate type
-        """
-        if not isinstance(y, pd.core.series.Series):
-            y = pd.Series(y)
-        return y.reset_index(drop=True, inplace=False)
-
-    def _find_best_feature(self, X, y, tree, k='root', i=1):
-        """ Iterates across all features to find the one allowing the best split
-        and updates the tree accordingly
-
-        Parameters
-        ----------
-        X : pandas DataFrame or numpy array
-            training data for the model
-        y : pandas Series or numpy array
-            dependent variable training data for the model
-        tree : decision tree object (nested dicts and lists)
-            current layer of the decision tree
-        k : str
-            key for the current layer of the decision tree
-        i : int
-            iterator used to terminate regression at max_depth
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
+        max_depth : int
+            max depth permitted or tree
+        tree : Node class
+            layer of decision tree
 
         Returns
         -------
         None
         """
-        results = [np.inf]
-        for col in X.columns:
-            temp_results = self._find_best_split(col_data=X[col],
-                                                 y=y)
-            if temp_results[-1] < results[-1]:
-                results = [col] + temp_results  # concat the lists together
-        if i == self.max_depth or results[4] == 1 or results[5] == 1:
-            tree[k] = [results[0], results[3], {'b': results[1], 'a': results[2]}]
+        # find best split across all columns of data
+        col, split, a_mean, b_mean = self._find_best_col(X, y)
+        mask = X[:, col] > split
+        # update tree with split information
+        tree.data = (col, split)
+        # Node will be leaf if max_depth reached or contains 3 or less observations
+        a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
+        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
+        # create mew nodes
+        tree.a = Node(depth=tree.depth + 1, is_leaf=a_leaf)
+        tree.b = Node(depth=tree.depth + 1, is_leaf=b_leaf)
+        # terminate tree with mean for split or continue to build tree recursively
+        if a_leaf:
+            tree.a.data = a_mean
         else:
-            tree[k] = [results[0], results[3], {}]
-            self._find_best_feature(X=X[X[results[0]] <= results[3]],
-                                    y=y[X[results[0]] <= results[3]],
-                                    tree=tree[k][-1],
-                                    k='b',
-                                    i=i + 1)
-            self._find_best_feature(X=X[X[results[0]] > results[3]],
-                                    y=y[X[results[0]] > results[3]],
-                                    tree=tree[k][-1],
-                                    k='a',
-                                    i=i + 1)
+            self._build_tree(X=X[mask],
+                             y=y[mask],
+                             max_depth=max_depth,
+                             tree=tree.a)
+        if b_leaf:
+            tree.b.data = b_mean
+        else:
+            self._build_tree(X=X[np.invert(mask)],
+                             y=y[np.invert(mask)],
+                             max_depth=max_depth,
+                             tree=tree.b)
 
-    def _find_best_split(self, col_data, y):
-        """ Iterates across all values of a features to find the best split
+    def _find_best_col(self, X, y):
+        """ Iterates through the columns to find the one generating the split producing least error
 
         Parameters
         ----------
-        col_data : numpy array
-            independent variable training data for the the given feature
+        X : numpy array
+            training data independent variable(s)
         y : numpy array
-            dependent variable training data
+            training data dependent variable
 
         Returns
         -------
-        list
-            [0] = y_hat below or equal to the split
-            [1] = y_hat above the split
-            [2] = split value
-            [3] = count of values below or equal to the split
-            [4] = count of values above the split
+        tuple
+            col : int
+                index of column giving best split
+            split : float or int
+                value giving best split
+            b_mean : float
+                mean of y below or equal to the split value
+            a_mean : float
+                mean of y above the split value
         """
-        results = [np.inf]
-        vals = set(col_data)
-        for val in vals:
-            mask_b = col_data <= val
-            mean_b = np.mean(y[mask_b])
-            mean_a = np.mean(y[col_data > val])
-            if sum(mask_b) == 0 or len(y) - sum(mask_b) == 0:
-                continue
-            else:
-                y_hat = np.repeat(mean_a, len(y))
-                y_hat[mask_b] = mean_b
-                temp_score = RSS(y, y_hat)
-                if temp_score < results[-1]:
-                    results = [mean_b, mean_a, val, sum(mask_b), len(y) - sum(mask_b), temp_score]
-        return results
+        # initialize starting values
+        error = np.inf
+        col = 0
+        split = 0
+        a_mean = 0
+        b_mean = 0
+        # for each col, find best split and update values if error improved
+        for i in range(0, X.shape[1]):
+            temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y)
+            if temp_error < error:
+                error = temp_error
+                col = i
+                split = temp_split
+                a_mean = temp_a_mean
+                b_mean = temp_b_mean
+        return col, split, a_mean, b_mean
 
-    def _generate_y_hat(self, row, tree=None):
-        """ Estimates y_hat for each row of the test data by recursively querying
-        the decision tree
+    def _find_best_split(self, values, y):
+        """ Iterates through the unique values of the column to find the split producing least error
 
         Parameters
         ----------
-        row : pandas Series
-            row of test dataset
-        tree : decision tree object (nested dicts and lists)
-            current layer of the decision tree
+        values : numpy array
+            column of dependent variable training data
+        y : numpy array
+            training data dependent variable
 
         Returns
         -------
-        float
-            y_hat for the given row of the dataset
+        tuple
+            error : float
+                sum of squared error
+            split : float or int
+                value giving best split
+            b_mean : float
+                mean of y below or equal to the split value
+            a_mean : float
+                mean of y above the split value
         """
-        if tree is None:
-            tree = self.tree.tree['root']
-        if row[tree[0]] <= tree[1]:
-            if isinstance(tree[-1]['b'], list):
-                return self._generate_y_hat(row=row,
-                                            tree=tree[-1]['b'])
-            else:
-                return tree[-1]['b']
-        else:
-            if isinstance(tree[-1]['a'], list):
-                return self._generate_y_hat(row=row,
-                                            tree=tree[-1]['a'])
-            else:
-                return tree[-1]['a']
+        # initialize starting values
+        error = np.inf
+        split = 0
+        a_mean = 0
+        b_mean = 0
+        # check all possible splits and update values if error improved
+        for n in np.unique(values):
+            mask = values > n
+            # skip splits resulting in arrays with no values
+            if sum(mask) == 0:
+                continue
+            temp_a_mean = np.mean(y[mask])
+            temp_b_mean = np.mean(y[np.invert(mask)])
+            y_hat = np.repeat(a_mean, len(y))
+            y_hat[np.invert(mask)] = b_mean
+            temp_error = RSS(y, y_hat)
+            if temp_error < error:
+                error = temp_error
+                split = n
+                a_mean = temp_a_mean
+                b_mean = temp_b_mean
+        return error, split, a_mean, b_mean

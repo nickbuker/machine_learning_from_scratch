@@ -1,6 +1,5 @@
 import numpy as np
-import pandas as pd
-from scoring import R2, RSS
+from scoring import R2
 from DecisionTreeRegressor import DecisionTreeRegressor
 
 
@@ -8,123 +7,116 @@ class RandomForestRegressor:
 
     def __init__(self):
         """
-
+        Decision tree regression implemented in Python using numpy
         """
         pass
 
     def fit(self, X, y, max_depth, n_estimators):
-        """
+        """ Takes in training data and generates the random forest
 
         Parameters
         ----------
-        X
-        y
-        max_depth
-        n_estimators
+        X : numpy array
+            training data independent variable(s)
+        y : numpy array
+            training data dependent variable
+        max_depth : int
+            max depth permitted for tree
+        n_estimators : int
+            number of tree for forest
 
         Returns
         -------
-
+        None
         """
         # instantiate forest of decision trees
         self.trees = [DecisionTreeRegressor() for _ in range(n_estimators)]
-        # create masks for rows and columns of data for each tree
-        X = self._check_data_type_X(X)
-        y = self._check_data_type_y(y)
-        rows = [self._sample_rows(X.index) for _ in range(n_estimators)]
-        n_cols = int(len(X.columns) ** 0.5)
-        cols = [self._sample_cols(X.columns, n_cols) for _ in range(n_estimators)]
+        # ensure data is in numpy arrays
+        X = self._make_array(X)
+        y = self._make_array(y)
+        # sample rows and columns for each tree
+        rows = [self._draw_sample(X.shape[0], X.shape[0]) for _ in range(n_estimators)]
+        n_cols = int(X.shape[1] ** 0.5)
+        cols = [self._draw_sample(X.shape[1], n_cols) for _ in range(n_estimators)]
+        # fit trees to these samples
         for i, tree in enumerate(self.trees):
-            # TODO fix this line
-            tree.fit(X[cols[i]].iloc[rows[i]], y.iloc[rows[i]], max_depth)
+            tree.fit(X[rows[i], cols[i]], y[rows[i]], max_depth)
 
     def predict(self, X):
-        """
+        """ Estimates y for the test data
 
         Parameters
         ----------
-        X
+        X : numpy array
+            test data independent variable(s)
 
         Returns
         -------
-
+        numpy array
+            y_hat values for test data
         """
-        X = self._check_data_type_X(X)
+        # ensure data is in numpy arrays
+        X = self._make_array(X)
         preds = []
+        # take the mean of the estimates of all trees for each data point
         for tree in self.trees:
             preds.append(tree.predict(X))
         return np.mean(preds, axis=0)
 
     def score(self, X, y):
-        """
+        """ Calculates model R squared for the test data
 
         Parameters
         ----------
-        X
-        y
+        X : numpy array
+            test data independent variable(s)
+        y : numpy array
+            test data dependent variable
 
         Returns
         -------
-
+        float
+            R-squared value
         """
-        X = self._check_data_type_X(X)
-        y = self._check_data_type_y(y)
+        # ensure data is in numpy arrays
+        X = self._make_array(X)
+        y = self._make_array(y)
         y_hat = self.predict(X)
+        # calculate R-squared value
         return R2(y, y_hat)
 
-    def _check_data_type_X(self, X):
-        """ Checks if X is a pandas DataFrame and if not, converts it to one
-        Parameters
-        ----------
-        X : pandas DataFrame or numpy array
-            data
-        Returns
-        -------
-        pandas DataFrame
-            data of appropriate type
-        """
-        if not isinstance(X, pd.core.frame.DataFrame):
-            X = pd.DataFrame(X)
-        return X.reset_index(drop=True, inplace=False)
-
-    def _check_data_type_y(self, y):
-        """ Checks if y is a pandas Series and if not, converts it to one
-        Parameters
-        ----------
-        y : pandas Series or numpy array
-            data
-        Returns
-        -------
-        pandas Series
-            data of appropriate type
-        """
-        if not isinstance(y, pd.core.series.Series):
-            y = pd.Series(y)
-        return y.reset_index(drop=True, inplace=False)
-
-    def _sample_rows(self, index):
-        """
+    def _make_array(self, data):
+        """ Converts input data to numpy array if not isinstance() numpy ndarray
 
         Parameters
         ----------
-        index
+        data : structure capable of being converted to numpy array
+            input data
 
         Returns
         -------
-
+        numpy array
+            data of the appropriate type
         """
-        return np.random.randint(0, len(index) -1 , len(index))
+        if not isinstance(data, np.ndarray):
+            np.array(data)
+        return data
 
-    def _sample_cols(self, cols, n_cols):
-        """
+    def _draw_sample(self, sample_max, sample_size):
+        """ Takes in information about max value and sample size and generates
+        a numpy array of ints used for sampling rows and columns for forest
 
         Parameters
         ----------
-        cols
-        n_cols
+        sample_max : int
+            the max value (exclusive) to be contained in sample index array
+        sample_size : int
+            number of elements sample index array should contain
 
         Returns
         -------
-
+        numpy array
+            array of ints to serve as sampling index for rows or columns
         """
-        return np.random.choice(cols, n_cols)
+        # create an array of integers to serve as index for sampling
+        return np.random.randint(0, sample_max, sample_size)

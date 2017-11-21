@@ -1,54 +1,42 @@
-class Tree:
+class Node:
 
-    def __init__(self):
-        self.tree = {'root':[]}
-
-    def add_node(self, keys, value, tree, i=1):
-        """
+    def __init__(self, data=None, depth=0, is_leaf=False):
+        """ A general node class for generating tree models
 
         Parameters
         ----------
-        keys :  list
-            keys for traversing tree
-        value : list, float, or int
-            value to be inserted into tree
-        tree : nested dict
-            tree of variable depth and general structure:
-            {key: [n1, n2, ..., {key: [n1, n2, ..., {key: y_hat}]}
-        i : int
-            incrementer for tracking depth
-
-        Returns
-        -------
-        None
+        data : Any type
+            data saved in node typically:
+                - tuple (split col, split value)
+                - float with y_hat if leaf
+        depth : int
+            depth of node (used for tree termination)
+        is_leaf : bool
+            flags whether or not node is a terminal leaf of the tree
         """
-        if i == len(keys):
-            tree[keys[i]] = value
-        else:
-            self.add_node(keys=keys,
-                          tree=tree[keys[i]][-1],
-                          i=i + 1)
+        self.a = None
+        self.b = None
+        self.data = data
+        self.depth = depth
+        self.is_leaf = is_leaf
 
-    def lookup_value(self, keys, tree, i=1):
-        """
+    def query(self, row):
+        """ Recursively queries nodes to find y_hat for a row of data
 
         Parameters
         ----------
-        keys : list
-            keys for traversing tree
-        tree : nested dict
-            tree of variable depth and general structure:
-            {key: [n1, n2, ..., {key: [n1, n2, ..., {key: y_hat}]}
-        i : int
-            incrementer for tracking depth
+        row : numpy array
+            row of independent variable data
 
         Returns
         -------
-        value for deepest branch of tree provided by keys
+        float
+            y_hat for the row of data
         """
-        if i == len(keys):
-            return tree[keys[i]]
+        if self.is_leaf:
+            return self.data
         else:
-            return self.lookup_value(keys=keys,
-                                     tree=tree[keys[i]][-1],
-                                     i=i + 1)
+            if row[self.data[0]] > self.data[1]:
+                return self.a.query(row)
+            else:
+                return self.b.query(row)
