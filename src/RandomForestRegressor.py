@@ -35,9 +35,11 @@ class RandomForestRegressor:
         X = self._make_array(X)
         y = self._make_array(y)
         # sample rows and columns for each tree
-        rows = [self._draw_sample(X.shape[0], X.shape[0]) for _ in range(n_estimators)]
+        rows = [self._draw_sample(X.shape[0], X.shape[0], replacement=True)
+                for _ in range(n_estimators)]
         n_cols = int(X.shape[1] ** 0.5)
-        cols = [self._draw_sample(X.shape[1], n_cols) for _ in range(n_estimators)]
+        cols = [self._draw_sample(X.shape[1], n_cols, replacement=False)
+                for _ in range(n_estimators)]
         # fit trees to these samples
         for i, tree in enumerate(self.trees):
             tree.fit(X[rows[i], :][:, cols[i]],
@@ -103,7 +105,7 @@ class RandomForestRegressor:
             np.array(data)
         return data
 
-    def _draw_sample(self, sample_max, sample_size):
+    def _draw_sample(self, sample_max, sample_size, replacement):
         """ Takes in information about max value and sample size and generates
         a numpy array of ints used for sampling rows and columns for forest
 
@@ -113,14 +115,22 @@ class RandomForestRegressor:
             the max value (exclusive) to be contained in sample index array
         sample_size : int
             number of elements sample index array should contain
+        replacement : bool
+            flag indicating whether or not there should be replacement
 
         Returns
         -------
         numpy array
             array of ints to serve as sampling index for rows or columns
         """
-        # create an array of integers to serve as index for sampling
-        return np.random.randint(0, sample_max, sample_size)
+        # create an array of integers (with replacement) as index for sampling
+        if replacement:
+            return np.random.randint(0, sample_max, sample_size)
+        # create an array of integers (w/o replacement) as index for sampling
+        else:
+            temp_array = np.arange(sample_max)
+            np.random.shuffle(temp_array)
+            return temp_array[0: sample_size]
 
     def _make_col_map(self):
         pass
