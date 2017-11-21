@@ -2,6 +2,7 @@ import numpy as np
 from Tree2 import Node
 from scoring import R2, RSS
 
+
 class DecisionTreeRegressor:
     def __init__(self):
         """
@@ -26,6 +27,7 @@ class DecisionTreeRegressor:
         None
         """
         self.tree = Node()
+        # ensure data is in numpy arrays
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
         self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
@@ -43,7 +45,9 @@ class DecisionTreeRegressor:
         numpy array
             y_hat values for test data
         """
-        X =  self._make_numpy(data=X)
+        # ensure data is in numpy arrays
+        X = self._make_numpy(data=X)
+        # map tree query method across data
         return np.apply_along_axis(func1d=self.tree.query, axis=1, arr=X)
 
     def score(self, X, y):
@@ -61,9 +65,11 @@ class DecisionTreeRegressor:
         float
             R squared value
         """
+        # ensure data is in numpy arrays
         X = self._make_numpy(data=X)
         y = self._make_numpy(data=y)
         y_hat = self.predict(X)
+        # calculate R-squared value
         return R2(y, y_hat)
 
     def _make_numpy(self, data):
@@ -101,16 +107,18 @@ class DecisionTreeRegressor:
         -------
         None
         """
-        # TODO fix warnings
+        # find best split across all columns of data
         col, split, a_mean, b_mean = self._find_best_col(X, y)
         mask = X[:, col] > split
+        # update tree with split information
         tree.data = (col, split)
         # Node will be leaf if max_depth reached or contains 3 or less observations
         a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
         b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
+        # create mew nodes
         tree.a = Node(depth=tree.depth + 1, is_leaf=a_leaf)
         tree.b = Node(depth=tree.depth + 1, is_leaf=b_leaf)
-        # terminate tree with mean or continue to build tree recursively
+        # terminate tree with mean for split or continue to build tree recursively
         if a_leaf:
             tree.a.data = a_mean
         else:
@@ -148,11 +156,13 @@ class DecisionTreeRegressor:
             a_mean : float
                 mean of y above the split value
         """
+        # initialize starting values
         error = np.inf
         col = 0
         split = 0
         a_mean = 0
         b_mean = 0
+        # for each col, find best split and update values if error improved
         for i in range(0, X.shape[1]):
             temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y)
             if temp_error < error:
@@ -185,12 +195,15 @@ class DecisionTreeRegressor:
             a_mean : float
                 mean of y above the split value
         """
+        # initialize starting values
         error = np.inf
         split = 0
         a_mean = 0
         b_mean = 0
+        # check all possible splits and update values if error improved
         for n in np.unique(values):
             mask = values > n
+            # skip splits resulting in arrays with no values
             if sum(mask) == 0:
                 continue
             temp_a_mean = np.mean(y[mask])
