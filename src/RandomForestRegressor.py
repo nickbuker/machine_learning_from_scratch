@@ -40,7 +40,8 @@ class RandomForestRegressor:
         cols = [self._draw_sample(X.shape[1], n_cols) for _ in range(n_estimators)]
         # fit trees to these samples
         for i, tree in enumerate(self.trees):
-            tree.fit(X[rows[i], cols[i]], y[rows[i]], max_depth)
+            tree.fit(X[rows[i], :][:, cols[i]],
+                     y[rows[i]], max_depth)
 
     def predict(self, X):
         """ Estimates y for the test data
@@ -120,3 +121,7 @@ class RandomForestRegressor:
         """
         # create an array of integers to serve as index for sampling
         return np.random.randint(0, sample_max, sample_size)
+
+    def _make_col_map(self):
+        pass
+        # TODO create a mapping of new col indices to old col indices
