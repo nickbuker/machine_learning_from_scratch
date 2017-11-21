@@ -10,7 +10,7 @@ class DecisionTreeRegressor:
         """
         pass
 
-    def fit(self, X, y, max_depth):
+    def fit(self, X, y, max_depth, col_map=None):
         """ Takes in training data and generates the decision tree
 
         Parameters
@@ -21,12 +21,15 @@ class DecisionTreeRegressor:
             training data dependent variable
         max_depth : int
             max depth permitted for tree
+        col_map : dict (key : int, value : int)
+            for random forest, maps new col indices to old column indices
 
         Returns
         -------
         None
         """
         self.tree = Node()
+        self.col_map = col_map
         # ensure data is in numpy arrays
         X = self._make_array(data=X)
         y = self._make_array(data=y)
@@ -101,7 +104,7 @@ class DecisionTreeRegressor:
         max_depth : int
             max depth permitted or tree
         tree : Node class
-            layer of decision tree
+            relevant layers of decision tree
 
         Returns
         -------
@@ -111,7 +114,10 @@ class DecisionTreeRegressor:
         col, split, a_mean, b_mean = self._find_best_col(X, y)
         mask = X[:, col] > split
         # update tree with split information
-        tree.data = (col, split)
+        if self.col_map is None:
+            tree.data = (col, split)
+        else:
+            tree.data = (self.col_map[col], split)
         # Node will be leaf if max_depth reached or contains 3 or less observations
         a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
         b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
