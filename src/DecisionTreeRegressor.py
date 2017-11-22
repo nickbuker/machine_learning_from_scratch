@@ -1,6 +1,6 @@
 import numpy as np
 from Tree import Node
-from scoring import R2, RSS
+from scoring import R2, MSE
 
 
 class DecisionTreeRegressor:
@@ -216,7 +216,7 @@ class DecisionTreeRegressor:
             temp_b_mean = np.mean(y[np.invert(mask)])
             y_hat = np.repeat(a_mean, len(y))
             y_hat[np.invert(mask)] = b_mean
-            temp_error = RSS(y, y_hat)
+            temp_error = MSE(y, y_hat)
             if temp_error < error:
                 error = temp_error
                 split = n
