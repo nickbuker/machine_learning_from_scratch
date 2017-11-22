@@ -53,6 +53,24 @@ def ESS(y, y_hat):
     return np.sum((y_hat - np.mean(y)) ** 2)
 
 
+def MSE(y, y_hat):
+    """ Mean Squared Error
+
+    Parameters
+    ----------
+    y : numpy array
+        y values
+    y_hat : numpy array
+        y values estimated by model
+
+    Returns
+    -------
+    float
+        explained sum of squares
+    """
+    return RSS(y, y_hat) / y.shape[0]
+
+
 def R2(y, y_hat):
     """ R squared (coefficient of determination)
 
