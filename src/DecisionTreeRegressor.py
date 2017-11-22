@@ -118,9 +118,9 @@ class DecisionTreeRegressor:
             tree.data = (col, split)
         else:
             tree.data = (self.col_map[col], split)
-        # Node will be leaf if max_depth reached or contains 3 or less observations
-        a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 3
-        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 3
+        # Node will be leaf if max_depth reached or contains 2 or less observations
+        a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 2
+        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 2
         # create mew nodes
         tree.a = Node(depth=tree.depth + 1, is_leaf=a_leaf)
         tree.b = Node(depth=tree.depth + 1, is_leaf=b_leaf)
