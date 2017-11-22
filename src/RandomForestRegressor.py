@@ -11,7 +11,7 @@ class RandomForestRegressor:
         """
         pass
 
-    def fit(self, X, y, max_depth, n_estimators):
+    def fit(self, X, y, max_depth, n_estimators, n_features='all'):
         """ Takes in training data and generates the random forest
 
         Parameters
@@ -24,6 +24,9 @@ class RandomForestRegressor:
             max depth permitted for tree
         n_estimators : int
             number of tree for forest
+        n_feature : str
+            'all' uses all features for each tree
+            'sqrt' use only the square root of the number of features for each tree
 
         Returns
         -------
@@ -37,16 +40,24 @@ class RandomForestRegressor:
         # sample rows and columns for each tree
         rows = [self._draw_sample(X.shape[0], X.shape[0], replacement=True)
                 for _ in range(n_estimators)]
-        n_cols = int(X.shape[1] ** 0.5)
-        cols = [self._draw_sample(X.shape[1], n_cols, replacement=False)
-                for _ in range(n_estimators)]
-        col_map = [self._make_col_map(idxs) for idxs in cols]
-        # fit trees to these samples
-        for i, tree in enumerate(self.trees):
-            tree.fit(X=X[rows[i], :][:, cols[i]],
-                     y=y[rows[i]],
-                     max_depth=max_depth,
-                     col_map=col_map[i])
+        if n_features == 'sqrt':
+            n_cols = int(X.shape[1] ** 0.5)
+            cols = [self._draw_sample(X.shape[1], n_cols, replacement=False)
+                    for _ in range(n_estimators)]
+            col_map = [self._make_col_map(idxs) for idxs in cols]
+            # fit trees to these samples
+            for i, tree in enumerate(self.trees):
+                tree.fit(X=X[rows[i], :][:, cols[i]],
+                         y=y[rows[i]],
+                         max_depth=max_depth,
+                         col_map=col_map[i])
+        if n_features == 'all':
+            # fit trees to these samples
+            for i, tree in enumerate(self.trees):
+                tree.fit(X=X[rows[i], :],
+                         y=y[rows[i]],
+                         max_depth=max_depth)
+
 
     def predict(self, X):
         """ Estimates y for the test data
