@@ -1,7 +1,6 @@
 import numpy as np
 from Tree import Node
 from scoring import R2, MSE
-from sklearn.metrics import mean_squared_error, r2_score
 
 
 class DecisionTreeRegressor:
@@ -219,10 +218,6 @@ class DecisionTreeRegressor:
             y_hat = np.repeat(temp_a_mean, len(y))
             y_hat[np.invert(mask)] = temp_b_mean
             temp_error = MSE(y, y_hat)
-            temp_r2 = R2(y, y_hat)
-            sk_error = mean_squared_error(y, y_hat)
-            sk_r2 = r2_score(y, y_hat)
-            self.metrics[n] = (temp_error, temp_r2, sk_error, sk_r2)
             if temp_error < error:
                 error = temp_error
                 split = n
