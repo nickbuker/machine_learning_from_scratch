@@ -11,7 +11,7 @@ class RandomForestRegressor:
         """
         pass
 
-    def fit(self, X, y, max_depth, n_estimators, n_features='all'):
+    def fit(self, X, y, max_depth, n_estimators, min_samples_leaf=1, n_features='all'):
         """ Takes in training data and generates the random forest
 
         Parameters
@@ -24,6 +24,8 @@ class RandomForestRegressor:
             max depth permitted for tree
         n_estimators : int
             number of tree for forest
+        min_samples_leaf : int
+            min amount of samples permitted for a leaf
         n_feature : str
             'all' uses all features for each tree
             'sqrt' use only the square root of the number of features for each tree
@@ -32,6 +34,7 @@ class RandomForestRegressor:
         -------
         None
         """
+        # TODO find source of overfitting
         # instantiate forest of decision trees
         self.trees = [DecisionTreeRegressor() for _ in range(n_estimators)]
         # ensure data is in numpy arrays
@@ -50,6 +53,7 @@ class RandomForestRegressor:
                 tree.fit(X=X[rows[i], :][:, cols[i]],
                          y=y[rows[i]],
                          max_depth=max_depth,
+                         min_samples_leaf=min_samples_leaf,
                          col_map=col_map[i])
         if n_features == 'all':
             # fit trees to these samples
