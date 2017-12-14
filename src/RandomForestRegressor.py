@@ -60,7 +60,8 @@ class RandomForestRegressor:
             for i, tree in enumerate(self.trees):
                 tree.fit(X=X[rows[i], :],
                          y=y[rows[i]],
-                         max_depth=max_depth)
+                         max_depth=max_depth,
+                         min_samples_leaf=min_samples_leaf)
 
 
     def predict(self, X):
