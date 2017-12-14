@@ -10,7 +10,7 @@ class DecisionTreeRegressor:
         """
         pass
 
-    def fit(self, X, y, max_depth, col_map=None):
+    def fit(self, X, y, max_depth, min_samples_leaf=1, col_map=None):
         """ Takes in training data and generates the decision tree
 
         Parameters
@@ -21,6 +21,8 @@ class DecisionTreeRegressor:
             training data dependent variable
         max_depth : int
             max depth permitted for tree
+        min_samples_leaf : int
+            min amount of samples permitted for a leaf
         col_map : dict (key : int, value : int)
             for random forest, maps new col indices to old column indices
 
@@ -33,7 +35,11 @@ class DecisionTreeRegressor:
         # ensure data is in numpy arrays
         X = self._make_array(data=X)
         y = self._make_array(data=y)
-        self._build_tree(X=X, y=y, max_depth=max_depth, tree=self.tree)
+        self._build_tree(X=X,
+                         y=y,
+                         max_depth=max_depth,
+                         min_samples_leaf=min_samples_leaf,
+                         tree=self.tree)
 
     def predict(self, X):
         """ Estimates y for the test data
@@ -92,7 +98,7 @@ class DecisionTreeRegressor:
             np.array(data)
         return data
 
-    def _build_tree(self, X, y, max_depth, tree):
+    def _build_tree(self, X, y, max_depth, min_samples_leaf, tree):
         """ Takes in training data and recursively builds the decision tree
 
         Parameters
@@ -103,6 +109,8 @@ class DecisionTreeRegressor:
             training data dependent variable
         max_depth : int
             max depth permitted or tree
+        min_samples_leaf : int
+            min amount of samples permitted for a leaf
         tree : Node class
             relevant layers of decision tree
 
@@ -111,7 +119,7 @@ class DecisionTreeRegressor:
         None
         """
         # find best split across all columns of data
-        col, split, a_mean, b_mean = self._find_best_col(X, y)
+        col, split, a_mean, b_mean = self._find_best_col(X, y, min_samples_leaf)
         mask = X[:, col] > split
         # update tree with split information
         if self.col_map is None:
@@ -119,8 +127,8 @@ class DecisionTreeRegressor:
         else:
             tree.data = (self.col_map[col], split)
         # Node will be leaf if max_depth reached or contains 2 or less observations
-        a_leaf = tree.depth + 1 == max_depth or sum(mask) <= 2
-        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) <= 2
+        a_leaf = tree.depth + 1 == max_depth or sum(mask) == min_samples_leaf
+        b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) == min_samples_leaf
         # create mew nodes
         tree.a = Node(depth=tree.depth + 1, is_leaf=a_leaf)
         tree.b = Node(depth=tree.depth + 1, is_leaf=b_leaf)
@@ -131,6 +139,7 @@ class DecisionTreeRegressor:
             self._build_tree(X=X[mask],
                              y=y[mask],
                              max_depth=max_depth,
+                             min_samples_leaf=min_samples_leaf,
                              tree=tree.a)
         if b_leaf:
             tree.b.data = b_mean
@@ -138,9 +147,10 @@ class DecisionTreeRegressor:
             self._build_tree(X=X[np.invert(mask)],
                              y=y[np.invert(mask)],
                              max_depth=max_depth,
+                             min_samples_leaf=min_samples_leaf,
                              tree=tree.b)
 
-    def _find_best_col(self, X, y):
+    def _find_best_col(self, X, y, min_samples_leaf):
         """ Iterates through the columns to find the one generating the split producing least error
 
         Parameters
@@ -149,6 +159,8 @@ class DecisionTreeRegressor:
             training data independent variable(s)
         y : numpy array
             training data dependent variable
+        min_samples_leaf : int
+            min amount of samples permitted for a leaf
 
         Returns
         -------
@@ -170,7 +182,7 @@ class DecisionTreeRegressor:
         b_mean = 0
         # for each col, find best split and update values if error improved
         for i in range(0, X.shape[1]):
-            temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y)
+            temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y, min_samples_leaf)
             if temp_error < error:
                 error = temp_error
                 col = i
@@ -179,7 +191,7 @@ class DecisionTreeRegressor:
                 b_mean = temp_b_mean
         return col, split, a_mean, b_mean
 
-    def _find_best_split(self, values, y):
+    def _find_best_split(self, values, y, min_samples_leaf):
         """ Iterates through the unique values of the column to find the split producing least error
 
         Parameters
@@ -188,6 +200,8 @@ class DecisionTreeRegressor:
             column of dependent variable training data
         y : numpy array
             training data dependent variable
+        min_samples_leaf : int
+            min amount of samples permitted for a leaf
 
         Returns
         -------
@@ -207,11 +221,15 @@ class DecisionTreeRegressor:
         split = 0
         a_mean = 0
         b_mean = 0
+        # get sorted unique values from feature
+        uniques = np.unique(values)
+        # find midpoints between the unique values
+        mids = 0.5 * (uniques[1:] + uniques[:-1])
         # check all possible splits and update values if error improved
-        for n in np.unique(values):
+        for n in mids:
             mask = values > n
             # skip splits resulting in arrays with no values
-            if sum(mask) == 0:
+            if sum(mask) < min_samples_leaf:
                 continue
             temp_a_mean = np.mean(y[mask])
             temp_b_mean = np.mean(y[np.invert(mask)])
