@@ -10,7 +10,7 @@ class DecisionTreeRegressor:
         """
         pass
 
-    def fit(self, X, y, max_depth, min_samples_leaf=1, col_map=None):
+    def fit(self, X, y, max_depth, min_samples_leaf=1, n_cols=None):
         """ Takes in training data and generates the decision tree
 
         Parameters
@@ -23,15 +23,15 @@ class DecisionTreeRegressor:
             max depth permitted for tree
         min_samples_leaf : int
             min amount of samples permitted for a leaf
-        col_map : dict (key : int, value : int)
-            for random forest, maps new col indices to old column indices
+        n_cols : int
+            number of columns to consider for each split
 
         Returns
         -------
         None
         """
         self.tree = Node()
-        self.col_map = col_map
+        self.n_cols = n_cols
         # ensure data is in numpy arrays
         X = self._make_array(data=X)
         y = self._make_array(data=y)
@@ -119,13 +119,9 @@ class DecisionTreeRegressor:
         None
         """
         # find best split across all columns of data
-        col, split, a_mean, b_mean = self._find_best_col(X, y, min_samples_leaf)
+        col, split, a_mean, b_mean = self._find_best_col(X, y, min_samples_leaf, self.n_cols)
         mask = X[:, col] > split
-        # update tree with split information
-        if self.col_map is None:
-            tree.data = (col, split)
-        else:
-            tree.data = (self.col_map[col], split)
+        tree.data = (col, split)
         # Node will be leaf if max_depth reached or contains 2 or less observations
         a_leaf = tree.depth + 1 == max_depth or sum(mask) == min_samples_leaf
         b_leaf = tree.depth + 1 == max_depth or sum(np.invert(mask)) == min_samples_leaf
@@ -150,7 +146,7 @@ class DecisionTreeRegressor:
                              min_samples_leaf=min_samples_leaf,
                              tree=tree.b)
 
-    def _find_best_col(self, X, y, min_samples_leaf):
+    def _find_best_col(self, X, y, min_samples_leaf, n_cols):
         """ Iterates through the columns to find the one generating the split producing least error
 
         Parameters
@@ -161,6 +157,8 @@ class DecisionTreeRegressor:
             training data dependent variable
         min_samples_leaf : int
             min amount of samples permitted for a leaf
+        n_cols : int
+            number of columns to consider for each split
 
         Returns
         -------
@@ -181,7 +179,11 @@ class DecisionTreeRegressor:
         a_mean = 0
         b_mean = 0
         # for each col, find best split and update values if error improved
-        for i in range(0, X.shape[1]):
+        if n_cols is None:
+            columns = range(0, X.shape[1])
+        else:
+            columns = np.random.choice(range(0, X.shape[1]), n_cols, replace=False)
+        for i in columns:
             temp_error, temp_split, temp_a_mean, temp_b_mean = self._find_best_split(X[:, i], y, min_samples_leaf)
             if temp_error < error:
                 error = temp_error

@@ -26,7 +26,7 @@ class RandomForestRegressor:
             number of tree for forest
         min_samples_leaf : int
             min amount of samples permitted for a leaf
-        n_feature : str
+        n_features : str
             'all' uses all features for each tree
             'sqrt' use only the square root of the number of features for each tree
 
@@ -34,27 +34,22 @@ class RandomForestRegressor:
         -------
         None
         """
-        # TODO find source of overfitting
         # instantiate forest of decision trees
         self.trees = [DecisionTreeRegressor() for _ in range(n_estimators)]
         # ensure data is in numpy arrays
         X = self._make_array(X)
         y = self._make_array(y)
-        # sample rows and columns for each tree
-        rows = [self._draw_sample(X.shape[0], X.shape[0], replacement=True)
-                for _ in range(n_estimators)]
+        # bootstrap sample rows for each tree
+        rows = [self._bootstrap(X.shape[0]) for _ in range(n_estimators)]
         if n_features == 'sqrt':
             n_cols = int(X.shape[1] ** 0.5)
-            cols = [self._draw_sample(X.shape[1], n_cols, replacement=False)
-                    for _ in range(n_estimators)]
-            col_map = [self._make_col_map(idxs) for idxs in cols]
             # fit trees to these samples
             for i, tree in enumerate(self.trees):
-                tree.fit(X=X[rows[i], :][:, cols[i]],
+                tree.fit(X=X[rows[i], :],
                          y=y[rows[i]],
                          max_depth=max_depth,
                          min_samples_leaf=min_samples_leaf,
-                         col_map=col_map[i])
+                         n_cols=n_cols)
         if n_features == 'all':
             # fit trees to these samples
             for i, tree in enumerate(self.trees):
@@ -124,45 +119,21 @@ class RandomForestRegressor:
             np.array(data)
         return data
 
-    def _draw_sample(self, sample_max, sample_size, replacement):
+    def _bootstrap(self, n_rows):
         """ Takes in information about max value and sample size and generates
         a numpy array of ints used for sampling rows and columns for forest
 
         Parameters
         ----------
-        sample_max : int
-            the max value (exclusive) to be contained in sample index array
-        sample_size : int
+        n_rows : int
             number of elements sample index array should contain
-        replacement : bool
-            flag indicating whether or not there should be replacement
 
         Returns
         -------
         numpy array
             array of ints to serve as sampling index for rows or columns
         """
-        # create an array of integers (with replacement) as index for sampling
-        if replacement:
-            return np.random.randint(0, sample_max, sample_size)
-        # create an array of integers (w/o replacement) as index for sampling
-        else:
-            temp_array = np.arange(sample_max)
-            np.random.shuffle(temp_array)
-            return temp_array[0: sample_size]
-
-    def _make_col_map(self, idxs):
-        # TODO finish docstring
-        """
-
-        Parameters
-        ----------
-        idxs : numpy array
-            indexes of
-
-        Returns
-        -------
-        dict
-            mapping of new column indices to old column indices
-        """
-        return dict(zip(range(idxs.shape[0]), idxs))
+        # TODO look at sklearn bootstrapping
+        # create an array of integers (with replacement) as index for bootstrap sampling
+        # return np.array(range(0, n_rows))
+        return np.random.randint(0, n_rows, n_rows)
