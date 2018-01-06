@@ -65,7 +65,7 @@ class LogisticRegression:
         if prob:
             return y_prob
         else:
-            y_pred = np.zeros(len(y_prob))
+            y_pred = np.zeros(y_prob.shape[0])
             # if prob in y_prob >= threshold, convert label to 1
             np.place(y_pred, y_prob >= threshold, 1)
             return y_pred
