@@ -86,7 +86,7 @@ def accuracy(y, y_pred):
     float
         accuracy
     """
-    return sum(y == y_pred) / len(y)
+    return sum(y == y_pred) / y.shape[0]
 
 
 def log_loss(y, y_prob):
@@ -104,4 +104,4 @@ def log_loss(y, y_prob):
     float
         log loss
     """
-    return -sum((y * np.log(y_prob)) + ((1 - y) * np.log(1 - y_prob))) / len(y)
+    return -sum((y * np.log(y_prob)) + ((1 - y) * np.log(1 - y_prob))) / y.shape[0]
