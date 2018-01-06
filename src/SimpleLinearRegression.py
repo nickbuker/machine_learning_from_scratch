@@ -25,9 +25,8 @@ class SimpleLinearRegression:
         prints linear equation for trained model
         """
         x_bar, y_bar = np.mean(x), np.mean(y)
-        self._find_b1(x, x_bar, y, y_bar)
-        self._find_b0(y_bar, x_bar)
-        print('y_hat = {} + {} * x'.format(self.model['b1'], self.model['b0']))
+        self._find_b1(x=x, x_bar=x_bar, y=y, y_bar=y_bar)
+        self._find_b0(x_bar=x_bar, y_bar=y_bar)
 
     def predict(self, x):
         """ makes predictions on test data
@@ -83,15 +82,15 @@ class SimpleLinearRegression:
         """
         self.model['b1'] = (np.sum((x - x_bar) * (y - y_bar)) / np.sum((x - x_bar) ** 2))
 
-    def _find_b0(self, y_bar, x_bar):
+    def _find_b0(self, x_bar, y_bar):
         """ calculates intercept (beta 0) for linear model and adds it to model dict
 
         Parameters
         ----------
-        y_bar : float
-            mean of training data
         x_bar : float
             mean of y values for training data
+        y_bar : float
+            mean of training data
 
         Returns
         -------
