@@ -27,8 +27,6 @@ class MultipleLinearRegression:
         intercept_col = np.ones(X.shape[0])
         X = np.insert(X, 0, intercept_col, axis=1)
         self.betas = self._find_betas(X, y)
-        for i, beta in enumerate(self.betas):
-            print('B{}: {}'.format(i, beta), end=" ")
 
     def predict(self, X):
         """ makes predictions on test data

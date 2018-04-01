@@ -1,4 +1,5 @@
-pycharm_src/
 .idea/
+.code/
 __pycache__/
 *.pyc
+.ipynb_checkpoints/

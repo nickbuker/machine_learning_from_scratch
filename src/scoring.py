@@ -86,10 +86,10 @@ def accuracy(y, y_pred):
     float
         accuracy
     """
-    return sum(y == y_pred) / len(y)
+    return sum(y == y_pred) / y.shape[0]
 
 
-def log_loss(y, y_prob):
+def log_loss(y, y_prob, padding=True):
     """ Log Loss
 
     Parameters
@@ -98,10 +98,15 @@ def log_loss(y, y_prob):
         actual 0 or 1 class labels
     y_prob : numpy array
         estimated probability of belonging to class 1
+    padding : bool
+        whether or not to pad zeros and ones with 1*10^-15
 
     Returns
     -------
     float
         log loss
     """
-    return -sum((y * np.log(y_prob)) + ((1 - y) * np.log(1 - y_prob))) / len(y)
+    if padding:
+        y_prob[y_prob < np.power(10.0, -15)] = np.power(10.0, -15)
+        y_prob[y_prob > (np.float64(1.0) - np.power(10.0, -15))] = np.float64(1.0) - np.power(10.0, -15)
+    return -sum((y * np.log(y_prob)) + ((np.float64(1.0) - y) * np.log(np.float64(1.0) - y_prob))) / y.shape[0]
