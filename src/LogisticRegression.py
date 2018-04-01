@@ -34,11 +34,14 @@ class LogisticRegression:
         """
         intercept_col = np.ones(X.shape[0])
         X = np.insert(X, 0, intercept_col, axis=1)
-        self.betas = self._gradient_descent(X=X,
-                                            y=y,
-                                            learning_rate=learning_rate,
-                                            convergence_change=converge_change,
-                                            max_iter=max_iter)
+        self.betas = self._gradient_descent(
+            X=X,
+            y=y,
+            learning_rate=learning_rate,
+            convergence_change=converge_change,
+            max_iter=max_iter
+        )
+        return
 
     def predict(self, X, prob=True, threshold=0.5):
         """ Makes probability or class predictions for test data
@@ -141,7 +144,7 @@ class LogisticRegression:
         return betas
 
     def _logit(self, X, betas):
-        """
+        """ Calculates the logit
 
         Parameters
         ----------
@@ -154,7 +157,10 @@ class LogisticRegression:
         numpy array
             probabilities of belonging to class 1
         """
-        return 1 / (1 + np.exp(-X.dot(betas)))
+        dots = -X.dot(betas)
+        # prevent infinity errors
+        dots[dots > np.float64(60.0)] = np.float64(60.0)
+        return np.float64(1.0) / (np.float64(1.0) + np.exp(dots))
 
     def _gradient(self, betas, X, y):
         """ Calculates the gradient
