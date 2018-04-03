@@ -160,6 +160,7 @@ class LogisticRegression:
         dots = -X.dot(betas)
         # prevent infinity errors
         dots[dots > np.float64(60.0)] = np.float64(60.0)
+        dots[dots < np.float64(-60.0)] = np.float64(-60.0)
         return np.float64(1.0) / (np.float64(1.0) + np.exp(dots))
 
     def _gradient(self, betas, X, y):
